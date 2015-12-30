@@ -1,0 +1,698 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>IOCP完成端口实例（二） | KNNA-个人博客</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="KNNA">
+    
+
+    
+    <meta name="description" content="IOCP框架核心功能上一篇文章把IOCP需要用到的相关功能模块已经封装好了，这章主要编写IOCP的核心功能实现，功能大致如下：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="IOCP完成端口实例（二）">
+<meta property="og:url" content="http://www.knna.me/2015/10/11/IOCP完成端口实例（二）/index.html">
+<meta property="og:site_name" content="KNNA-个人博客">
+<meta property="og:description" content="IOCP框架核心功能上一篇文章把IOCP需要用到的相关功能模块已经封装好了，这章主要编写IOCP的核心功能实现，功能大致如下：">
+<meta property="og:updated_time" content="2015-12-30T05:45:10.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="IOCP完成端口实例（二）">
+<meta name="twitter:description" content="IOCP框架核心功能上一篇文章把IOCP需要用到的相关功能模块已经封装好了，这章主要编写IOCP的核心功能实现，功能大致如下：">
+<meta name="twitter:creator" content="@knnapan">
+
+    
+    <link rel="alternative" href="/atom.xml" title="KNNA-个人博客" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+</head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.png" alt="KNNA-个人博客" title="KNNA-个人博客"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="KNNA-个人博客">KNNA-个人博客</a></h1>
+				<h2 class="blog-motto">.NET Developer</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">首页</a></li>
+					
+						<li><a href="/archives">文章</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+ 					
+						<form class="search">
+							<label>Search</label>
+						<input type="text" id="ts-search-input" name="q" size="30" placeholder="搜索"><br>
+						</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2015/10/11/IOCP完成端口实例（二）/" title="IOCP完成端口实例（二）" itemprop="url">IOCP完成端口实例（二）</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="KNNA" target="_blank" itemprop="author">KNNA</a>
+		
+  <p class="article-time">
+    <time datetime="2015-10-11T08:50:26.000Z" itemprop="datePublished"> 发表于 2015-10-11</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		
+			<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#IOCP框架核心功能"><span class="toc-number">1.</span> <span class="toc-text">IOCP框架核心功能</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#初始化"><span class="toc-number">1.1.</span> <span class="toc-text">初始化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#启动、停止"><span class="toc-number">1.2.</span> <span class="toc-text">启动、停止</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#接收连接"><span class="toc-number">1.3.</span> <span class="toc-text">接收连接</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#接收数据"><span class="toc-number">1.4.</span> <span class="toc-text">接收数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#发送数据"><span class="toc-number">1.5.</span> <span class="toc-text">发送数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#处理超时"><span class="toc-number">1.6.</span> <span class="toc-text">处理超时</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#结束"><span class="toc-number">2.</span> <span class="toc-text">结束</span></a></li></ol>
+		
+		</div>
+		
+		<h2 id="IOCP框架核心功能">IOCP框架核心功能</h2><p>上一篇文章把IOCP需要用到的相关功能模块已经封装好了，这章主要编写IOCP的核心功能实现，功能大致如下：<a id="more"></a></p>
+<blockquote>
+<ul>
+<li>初始化</li>
+<li>启动、停止</li>
+<li>接收连接</li>
+<li>接收数据</li>
+<li>发送数据</li>
+<li>处理超时</li>
+</ul>
+</blockquote>
+<h3 id="初始化">初始化</h3><p>在系统初始化时，需要做以下工作：</p>
+<blockquote>
+<ul>
+<li>实例化空闲的连接套接字数据池并向数据池添加数据</li>
+<li>实例化空闲业务数据池，并向数据池添加数据</li>
+<li>实例化空闲的用户对象数据池，并向数据池添加数据</li>
+<li>实例化已连接用户数据池</li>
+<li>实例化接收超时检测集合</li>
+<li>实例化待处理列队数据池</li>
+<li>实例化检测超时功能</li>
+<li>实例化工作线程池</li>
+<li>实例化内存管理器</li>
+</ul>
+</blockquote>
+<p>代码如下：<br><figure class="highlight cs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br></pre></td><td class="code"><pre><span class="line"><span class="preprocessor">#<span class="keyword">region</span> 全局变量</span></span><br><span class="line">        <span class="comment">//系统运行状态</span></span><br><span class="line">        <span class="keyword">bool</span> _runing = <span class="keyword">false</span>;</span><br><span class="line">        <span class="keyword">public</span> <span class="keyword">bool</span> ServerStatus &#123; <span class="keyword">get</span> &#123; <span class="keyword">return</span> _runing; &#125; &#125;</span><br><span class="line">        <span class="comment">//配置</span></span><br><span class="line">        ServerSettings _settings;</span><br><span class="line">        <span class="comment">//监听对象</span></span><br><span class="line">        Socket _listenerSocket;</span><br><span class="line">        <span class="comment">//空闲的接收连接异步套接字数据池</span></span><br><span class="line">        StackPool&lt;SocketAsyncEventArgs&gt; _freeAcceptEventArgsPool;</span><br><span class="line">        <span class="comment">//控制最大连接数</span></span><br><span class="line">        Semaphore _maxAcceptLock;</span><br><span class="line">        <span class="comment">//空闲客户端对象数据池</span></span><br><span class="line">        StackPool&lt;UserToken&gt; _freeUserTokenPool;</span><br><span class="line">        <span class="comment">//套接字使用的内存</span></span><br><span class="line">        BufferManager _eventArgsBufferManager;</span><br><span class="line">        <span class="comment">//业务项使用的内存</span></span><br><span class="line">        BufferManager _pocItemBufferManager;</span><br><span class="line">        <span class="comment">//当前连接客户端列表</span></span><br><span class="line">        DataPool&lt;UserToken&gt; _acceptUserPool;</span><br><span class="line">        <span class="comment">//检测接收超时列表</span></span><br><span class="line">        DataPool&lt;UserToken&gt; _receiveOvertimePool;</span><br><span class="line">        <span class="comment">//空闲业务项数据池</span></span><br><span class="line">        StackPool&lt;PocItem&gt; _freePocItemPool;</span><br><span class="line">        <span class="comment">//业务列队处理池</span></span><br><span class="line">        BlockingQueue&lt;PocItem&gt; _pocItemBlockingPool;</span><br><span class="line">        <span class="comment">//处理业务线程池</span></span><br><span class="line">        ThreadWorkPool&lt;PocItem&gt; _doWorkThreadPool;</span><br><span class="line">        <span class="comment">//处理接收超时的线程</span></span><br><span class="line">        CheckOverTime&lt;UserToken&gt; _checkReceiveOvertime;</span><br><span class="line">        <span class="comment">//处理套接字超时的线程</span></span><br><span class="line">        CheckOverTime&lt;UserToken&gt; _checkSocketOvertime;</span><br><span class="line">        <span class="comment">//套接字心跳设置数据</span></span><br><span class="line">        <span class="keyword">byte</span>[] _keepAliveValues;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//统计字段</span></span><br><span class="line">        <span class="keyword">int</span> _acceptErrorCount;</span><br><span class="line">        <span class="keyword">int</span> _pocItemDoErrorCount;</span><br><span class="line">        <span class="keyword">int</span> _sendErrorCount;</span><br><span class="line">        <span class="keyword">int</span> _receiveErrorCount;</span><br><span class="line">        <span class="preprocessor">#<span class="keyword">endregion</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;summary&gt;</span></span></span><br><span class="line">        <span class="comment"><span class="xmlDocTag">///</span> 初始化</span></span><br><span class="line">        <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;/summary&gt;</span></span></span><br><span class="line">        <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">Init</span>(<span class="params"></span>)</span><br><span class="line">        </span>&#123;</span><br><span class="line">            Log.WriteLog(IocpLogType.Info, <span class="string">"正在进行初始化"</span>);</span><br><span class="line"></span><br><span class="line">            _freeAcceptEventArgsPool = <span class="keyword">new</span> StackPool&lt;SocketAsyncEventArgs&gt;(_settings.MaxAcceptClients);</span><br><span class="line">            _freeUserTokenPool = <span class="keyword">new</span> StackPool&lt;UserToken&gt;(_settings.MaxAcceptClients);</span><br><span class="line">            _freePocItemPool = <span class="keyword">new</span> StackPool&lt;PocItem&gt;(_settings.MaxAcceptClients);</span><br><span class="line"></span><br><span class="line">            _acceptUserPool = <span class="keyword">new</span> DataPool&lt;UserToken&gt;();</span><br><span class="line">            _receiveOvertimePool = <span class="keyword">new</span> DataPool&lt;UserToken&gt;();</span><br><span class="line">            _pocItemBlockingPool = <span class="keyword">new</span> BlockingQueue&lt;PocItem&gt;();</span><br><span class="line"></span><br><span class="line">            _checkReceiveOvertime = <span class="keyword">new</span> CheckOverTime&lt;UserToken&gt;(<span class="number">5</span> * <span class="number">1000</span>, _settings.ReceiveOvertime, _receiveOvertimePool, CheckReceiveOverTime);</span><br><span class="line">            _checkSocketOvertime = <span class="keyword">new</span> CheckOverTime&lt;UserToken&gt;(<span class="number">10</span> * <span class="number">1000</span>, _settings.SocketOvertime, _acceptUserPool, CheckSocketOverTime);</span><br><span class="line"></span><br><span class="line">            _doWorkThreadPool = <span class="keyword">new</span> ThreadWorkPool&lt;PocItem&gt;(_pocItemBlockingPool, _settings.DoReceiveWorkThreadNum, DoWork, DoWorkError);</span><br><span class="line">            _maxAcceptLock = <span class="keyword">new</span> Semaphore(_settings.MaxAcceptClients, _settings.MaxAcceptClients);</span><br><span class="line">            _eventArgsBufferManager = <span class="keyword">new</span> BufferManager(_settings.MaxAcceptClients * _settings.ReceiveBufferSize * <span class="number">2</span>, _settings.ReceiveBufferSize);</span><br><span class="line">            _eventArgsBufferManager.InitBuffer();</span><br><span class="line">            _pocItemBufferManager = <span class="keyword">new</span> BufferManager(_settings.MaxAcceptClients * _settings.TransDataBufferSize, _settings.TransDataBufferSize);</span><br><span class="line">            _pocItemBufferManager.InitBuffer();</span><br><span class="line"></span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; _settings.MaxAcceptClients; i++)</span><br><span class="line">            &#123;</span><br><span class="line">                _freeAcceptEventArgsPool.Push(CreateAccetpingEventArgs());</span><br><span class="line"></span><br><span class="line">                UserToken userToken = <span class="keyword">new</span> UserToken(_settings.SndRevCacheSize);</span><br><span class="line">                _eventArgsBufferManager.SetBuffer&lt;SocketAsyncEventArgs&gt;(userToken.ReceiveEventArgs, (args, buffer, offset, lenght) =&gt;</span><br><span class="line">                &#123;</span><br><span class="line">                    args.SetBuffer(buffer, offset, lenght);</span><br><span class="line">                &#125;);</span><br><span class="line"></span><br><span class="line">                userToken.ReceiveEventArgs.Completed += IO_Completed;</span><br><span class="line">                userToken.SendEventArgs.Completed += IO_Completed;</span><br><span class="line">                _freeUserTokenPool.Push(userToken);</span><br><span class="line"></span><br><span class="line">                _freePocItemPool.Push(CreatePocItem());</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">uint</span> dummy = <span class="number">0</span>;</span><br><span class="line">            _keepAliveValues = <span class="keyword">new</span> <span class="keyword">byte</span>[Marshal.SizeOf(dummy) * <span class="number">3</span>];</span><br><span class="line">            BitConverter.GetBytes((<span class="keyword">uint</span>)<span class="number">1</span>).CopyTo(_keepAliveValues, <span class="number">0</span>);</span><br><span class="line">            BitConverter.GetBytes((<span class="keyword">uint</span>)_settings.CheckAliveInterval).CopyTo(_keepAliveValues, Marshal.SizeOf(dummy));</span><br><span class="line">            BitConverter.GetBytes((<span class="keyword">uint</span>)_settings.CheckAliveInterval).CopyTo(_keepAliveValues, Marshal.SizeOf(dummy) * <span class="number">2</span>);</span><br><span class="line"></span><br><span class="line">            Log.WriteLog(IocpLogType.Info, <span class="string">"初始化完成"</span>);</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="启动、停止">启动、停止</h3><p>启动时：</p>
+<blockquote>
+<ul>
+<li>实例化监听对象并启动监听，投递接收连接请求</li>
+<li>启动超时检测线程</li>
+</ul>
+</blockquote>
+<p>代码如下：<br><figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;summary&gt;</span></span></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> 启动系统</span></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;/summary&gt;</span></span></span><br><span class="line">       <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">Start</span>(<span class="params"></span>)</span><br><span class="line">       </span>&#123;</span><br><span class="line">           _runing = <span class="keyword">true</span>;</span><br><span class="line">           <span class="comment">//socket对象在关闭后即被释放，不能重复使用，所以每次启动实例化</span></span><br><span class="line">           _listenerSocket = <span class="keyword">new</span> Socket(_settings.LocalBindEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);</span><br><span class="line">           <span class="keyword">while</span> (<span class="keyword">true</span>)</span><br><span class="line">           &#123;</span><br><span class="line">               <span class="keyword">try</span></span><br><span class="line">               &#123;</span><br><span class="line">                   _listenerSocket.Bind(_settings.LocalBindEndPoint);</span><br><span class="line">                   _listenerSocket.Listen(_settings.MaxAcceptClients);</span><br><span class="line">                   <span class="keyword">break</span>;</span><br><span class="line">               &#125;</span><br><span class="line">               <span class="keyword">catch</span> &#123; Thread.Sleep(<span class="number">1000</span> * <span class="number">5</span>); &#125;<span class="comment">//重启时，系统未能及时获取IP地址打开监听会出现异常</span></span><br><span class="line">           &#125;</span><br><span class="line"></span><br><span class="line">           <span class="comment">//开始投递接收连接</span></span><br><span class="line">           <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; _settings.MaxAcceptingClients; i++)</span><br><span class="line">           &#123;</span><br><span class="line">               PostAccept();</span><br><span class="line">           &#125;</span><br><span class="line"></span><br><span class="line">           <span class="comment">//启动超时检测线程</span></span><br><span class="line">           _checkReceiveOvertime.Start();</span><br><span class="line">           _checkSocketOvertime.Start();</span><br><span class="line">           Log.WriteLog(IocpLogType.Info, <span class="string">"系统启动成功"</span>);</span><br><span class="line">       &#125;</span><br></pre></td></tr></table></figure></p>
+<p>停止时：</p>
+<blockquote>
+<ul>
+<li>关闭监听对象</li>
+<li>关闭超时检测线程</li>
+<li>等待工作线程池将未处理任务处理完成</li>
+<li>强制下线所有已连接客户端</li>
+</ul>
+</blockquote>
+<p>代码如下：<br><figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;summary&gt;</span></span></span><br><span class="line">        <span class="comment"><span class="xmlDocTag">///</span> 关闭系统</span></span><br><span class="line">        <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;/summary&gt;</span></span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">Exit</span>(<span class="params"></span>)</span><br><span class="line">        </span>&#123;</span><br><span class="line">            <span class="comment">//单独启动一个线程去关闭，避免阻塞UI</span></span><br><span class="line">            Task.Factory.StartNew(DoExit);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">DoExit</span>(<span class="params"></span>)</span><br><span class="line">        </span>&#123;</span><br><span class="line">            _runing = <span class="keyword">false</span>;</span><br><span class="line">            Log.WriteLog(IocpLogType.Error, <span class="string">"系统正在关闭，处理剩余任务"</span> + _pocItemBlockingPool.Count);</span><br><span class="line">            <span class="keyword">try</span></span><br><span class="line">            &#123;</span><br><span class="line">                <span class="comment">//关闭监听</span></span><br><span class="line">                _listenerSocket.Close();</span><br><span class="line">                <span class="comment">//关闭超时检测线程</span></span><br><span class="line">                _checkReceiveOvertime.Stop();</span><br><span class="line">                _checkSocketOvertime.Stop();</span><br><span class="line">                <span class="comment">//处理剩下的所有业务</span></span><br><span class="line">                <span class="keyword">while</span> (<span class="keyword">true</span>)</span><br><span class="line">                &#123;</span><br><span class="line">                    <span class="keyword">if</span> (_pocItemBlockingPool.Count == <span class="number">0</span>)</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="comment">//等待当前业务处理完成</span></span><br><span class="line">                        Thread.Sleep(<span class="number">1000</span>);</span><br><span class="line">                        <span class="keyword">break</span>;</span><br><span class="line">                    &#125;</span><br><span class="line">                    Thread.Sleep(<span class="number">10</span>);</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="comment">//强制所有客户端下线</span></span><br><span class="line">                UserToken[] users = _acceptUserPool.ToArray();</span><br><span class="line">                <span class="keyword">foreach</span> (<span class="keyword">var</span> user <span class="keyword">in</span> users)</span><br><span class="line">                &#123;</span><br><span class="line">                    CloseClientSocket(user, CloseSocketReason.Normal);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">catch</span> &#123; &#125;</span><br><span class="line">            Log.WriteLog(IocpLogType.Info, <span class="string">"系统已关闭"</span>);</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="接收连接">接收连接</h3><p>启动系统时，投递了接收连接请求，配置文件中配置了同时接收连接数，接收连接数即投递次数。<br>客户端连接请求到达时在ProcessAccept方法中处理<br>处理流程：</p>
+<blockquote>
+<ul>
+<li>判断连接是否成功，失败直接关闭套接字</li>
+<li>从空闲用户数据池中取出一个对象，初始化对象相关数据，并将此对象添加到已连接用户池</li>
+<li>释放接收连接的套接字对象</li>
+<li>投递接收数据请求</li>
+<li>重新投递接收连接请求</li>
+</ul>
+</blockquote>
+<p>代码如下：<br><figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;summary&gt;</span></span></span><br><span class="line">        <span class="comment"><span class="xmlDocTag">///</span> 投递接收请求</span></span><br><span class="line">        <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;/summary&gt;</span></span></span><br><span class="line">        <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">PostAccept</span>(<span class="params"></span>)</span><br><span class="line">        </span>&#123;</span><br><span class="line">            <span class="keyword">if</span> (_runing == <span class="keyword">false</span>)</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            _maxAcceptLock.WaitOne();</span><br><span class="line">            SocketAsyncEventArgs acceptEventArgs = _freeAcceptEventArgsPool.Pop() ?? CreateAccetpingEventArgs();</span><br><span class="line">            acceptEventArgs.AcceptSocket = <span class="keyword">null</span>;</span><br><span class="line">            <span class="keyword">bool</span> waitFlag = _listenerSocket.AcceptAsync(acceptEventArgs);</span><br><span class="line">            <span class="keyword">if</span> (waitFlag == <span class="keyword">false</span>)</span><br><span class="line">            &#123;</span><br><span class="line">                ProcessAccept(acceptEventArgs);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;summary&gt;</span></span></span><br><span class="line">        <span class="comment"><span class="xmlDocTag">///</span> 处理连接请求</span></span><br><span class="line">        <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;/summary&gt;</span></span></span><br><span class="line">        <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;param name="acceptEventArgs"&gt;</span><span class="xmlDocTag">&lt;/param&gt;</span></span></span><br><span class="line">        <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">ProcessAccept</span>(<span class="params">SocketAsyncEventArgs acceptEventArgs</span>)</span><br><span class="line">        </span>&#123;</span><br><span class="line">            <span class="keyword">if</span> (acceptEventArgs.SocketError == SocketError.OperationAborted)</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="comment">//系统关闭，操作取消</span></span><br><span class="line">                _maxAcceptLock.Release();</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (acceptEventArgs.SocketError != SocketError.Success)</span><br><span class="line">            &#123;</span><br><span class="line">                Interlocked.Increment(<span class="keyword">ref</span> _acceptErrorCount);</span><br><span class="line">                CloseSocket(acceptEventArgs.AcceptSocket);</span><br><span class="line">                _maxAcceptLock.Release();</span><br><span class="line">                PostAccept();</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            UserToken userToken = _freeUserTokenPool.Pop();</span><br><span class="line">            _acceptUserPool.Push(userToken);</span><br><span class="line">            userToken.Reset();</span><br><span class="line">            userToken.AcceptSocket = acceptEventArgs.AcceptSocket;</span><br><span class="line">            userToken.AcceptSocket.IOControl(IOControlCode.KeepAliveValues, _keepAliveValues, <span class="keyword">null</span>);</span><br><span class="line">            OnClientConnect(userToken);</span><br><span class="line">            _freeAcceptEventArgsPool.Push(acceptEventArgs);</span><br><span class="line">            PostReceive(userToken.ReceiveEventArgs);</span><br><span class="line">            PostAccept();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;summary&gt;</span></span></span><br><span class="line">        <span class="comment"><span class="xmlDocTag">///</span> 客户端连接时</span></span><br><span class="line">        <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;/summary&gt;</span></span></span><br><span class="line">        <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;param name="sender"&gt;</span><span class="xmlDocTag">&lt;/param&gt;</span></span></span><br><span class="line">        <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;param name="e"&gt;</span><span class="xmlDocTag">&lt;/param&gt;</span></span></span><br><span class="line">        <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">acceptEventArgs_Completed</span>(<span class="params"><span class="keyword">object</span> sender, SocketAsyncEventArgs e</span>)</span><br><span class="line">        </span>&#123;</span><br><span class="line">            ProcessAccept(e);</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="接收数据">接收数据</h3><p>收到连接时，投递接收请求，当有新数据到达时在ProcessReceive方法中处理<br>处理流程：</p>
+<blockquote>
+<ul>
+<li>将此用户从接收超时检测集合中移除</li>
+<li>判断接收是否成功，失败直接关闭套接字</li>
+<li>判断收到的数据包是否完整，不完整则继续等待下一次数据到达</li>
+<li>收到完整数据包后，投递数据包到待处理数据池</li>
+</ul>
+</blockquote>
+<p>代码如下：<br><figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br></pre></td><td class="code"><pre><span class="line"><span class="preprocessor">#<span class="keyword">region</span> 接收数据</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;summary&gt;</span></span></span><br><span class="line">        <span class="comment"><span class="xmlDocTag">///</span> 投递接收数据请求</span></span><br><span class="line">        <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;/summary&gt;</span></span></span><br><span class="line">        <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;param name="receiveEventArgs"&gt;</span><span class="xmlDocTag">&lt;/param&gt;</span></span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">PostReceive</span>(<span class="params">System.Net.Sockets.SocketAsyncEventArgs receiveEventArgs</span>)</span><br><span class="line">        </span>&#123;</span><br><span class="line">            UserToken userToken = receiveEventArgs.UserToken <span class="keyword">as</span> UserToken;</span><br><span class="line">            <span class="keyword">if</span> (userToken.AsyncReving == <span class="keyword">true</span>)</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            <span class="keyword">lock</span> (userToken)</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="keyword">if</span> (receiveEventArgs.CurrentOperating() != SocketAsyncOperating.Completed)</span><br><span class="line">                &#123;</span><br><span class="line">                    Interlocked.Increment(<span class="keyword">ref</span> _receiveErrorCount);</span><br><span class="line">                    Log.WriteLog(IocpLogType.Error, <span class="string">"投递接收错误，套接字正在操作中"</span>);</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">else</span></span><br><span class="line">                &#123;</span><br><span class="line">                    userToken.AsyncReving = <span class="keyword">true</span>;</span><br><span class="line">                    userToken.ReceiveDateTime = DateTime.Now;</span><br><span class="line">                    _receiveOvertimePool.Push(userToken);</span><br><span class="line">                    <span class="keyword">bool</span> waitFlag = receiveEventArgs.AcceptSocket.ReceiveAsync(receiveEventArgs);</span><br><span class="line">                    <span class="keyword">if</span> (waitFlag == <span class="keyword">false</span>)</span><br><span class="line">                        ProcessReceive(receiveEventArgs);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;summary&gt;</span></span></span><br><span class="line">        <span class="comment"><span class="xmlDocTag">///</span> 开始接收数据</span></span><br><span class="line">        <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;/summary&gt;</span></span></span><br><span class="line">        <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;param name="receiveEventArgs"&gt;</span><span class="xmlDocTag">&lt;/param&gt;</span></span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">ProcessReceive</span>(<span class="params">System.Net.Sockets.SocketAsyncEventArgs receiveEventArgs</span>)</span><br><span class="line">        </span>&#123;</span><br><span class="line">            UserToken userToken = receiveEventArgs.UserToken <span class="keyword">as</span> UserToken;</span><br><span class="line">            userToken.AsyncReving = <span class="keyword">false</span>;</span><br><span class="line">            Monitor.Enter(userToken);</span><br><span class="line">            _receiveOvertimePool.Remove(userToken);</span><br><span class="line">            <span class="keyword">if</span> (receiveEventArgs.SocketError == SocketError.ConnectionReset)</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="comment">//客户端主动关闭</span></span><br><span class="line">                userToken.CloseSocketReason = CloseSocketReason.Normal;</span><br><span class="line">                CloseClientSocket(userToken, userToken.CloseSocketReason);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="function"><span class="keyword">else</span> <span class="title">if</span> (<span class="params">(receiveEventArgs.SocketError != SocketError.Success</span>) | receiveEventArgs.BytesTransferred </span>== <span class="number">0</span>)</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="comment">//通讯错误</span></span><br><span class="line">                Interlocked.Increment(<span class="keyword">ref</span> _receiveErrorCount);</span><br><span class="line">                userToken.CloseSocketReason = CloseSocketReason.ReceiveException;</span><br><span class="line">                CloseClientSocket(userToken, userToken.CloseSocketReason);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="function"><span class="keyword">else</span> <span class="title">if</span> (<span class="params">userToken.WorkReceive(receiveEventArgs, Receive</span>) </span>== <span class="keyword">false</span>)</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="comment">//处理粘包失败</span></span><br><span class="line">                Interlocked.Increment(<span class="keyword">ref</span> _receiveErrorCount);</span><br><span class="line">                userToken.CloseSocketReason = CloseSocketReason.ReceiveException;</span><br><span class="line">                CloseClientSocket(userToken, userToken.CloseSocketReason);</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            Monitor.Exit(userToken);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;summary&gt;</span></span></span><br><span class="line">        <span class="comment"><span class="xmlDocTag">///</span> 投递接收的数据包到工作池</span></span><br><span class="line">        <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;/summary&gt;</span></span></span><br><span class="line">        <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;param name="package"&gt;</span><span class="xmlDocTag">&lt;/param&gt;</span></span></span><br><span class="line">        <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;param name="offset"&gt;</span><span class="xmlDocTag">&lt;/param&gt;</span></span></span><br><span class="line">        <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;param name="count"&gt;</span><span class="xmlDocTag">&lt;/param&gt;</span></span></span><br><span class="line">        <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;returns&gt;</span><span class="xmlDocTag">&lt;/returns&gt;</span></span></span><br><span class="line">        <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">Receive</span>(<span class="params">UserToken userToken, <span class="keyword">int</span> offset, <span class="keyword">int</span> count</span>)</span><br><span class="line">        </span>&#123;</span><br><span class="line">            Monitor.Enter(userToken);</span><br><span class="line">            PocItem item = GetFreePocItem();</span><br><span class="line">            item.Reset();</span><br><span class="line">            item.UserToken = userToken;</span><br><span class="line">            item.ParseReceiveBuffer(userToken.ReceivePackageBuffer.Buffer, offset + PackageBuffer.PackageHeaderLength, count);</span><br><span class="line">            item.RemoteEndpoint = userToken.AcceptSocket.RemoteEndPoint;</span><br><span class="line">            _pocItemBlockingPool.Push(item);</span><br><span class="line">            Monitor.Exit(userToken);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="preprocessor">#<span class="keyword">endregion</span></span></span><br></pre></td></tr></table></figure></p>
+<h3 id="发送数据">发送数据</h3><p>在此IOCP实例的流程中，处理完接收的数据后，会返回处理结果给客户端，根据项目需要可以在不同的地方投递发送数据请求。<br>投递发送数据请求前，需要调用用户对象的公开方法ParseSendBuffer来写入发送数据，在投递方法中，判断无数据发送时不会投递。<br>投递发送请求处理流程如下：</p>
+<blockquote>
+<ul>
+<li>判断当前套接字是否已经在操作中，状态操作中将输出一条错误信息并返回</li>
+<li>判断是否有数据需要发送，没有直接返回</li>
+<li>有数据待发送，投递发送数据请求</li>
+</ul>
+</blockquote>
+<p>数据发送完成处理流程如下：</p>
+<blockquote>
+<ul>
+<li>清除已发送的数据包</li>
+<li>判断是否发送成功，失败关闭客户端</li>
+<li>判断是否还有数据包需要发送，没有直接返回</li>
+<li>有数据待发送，投递发送数据请求</li>
+</ul>
+</blockquote>
+<p>代码如下：<br><figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br></pre></td><td class="code"><pre><span class="line"><span class="preprocessor">#<span class="keyword">region</span> 发送数据</span></span><br><span class="line">       <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">SendData</span>(<span class="params">PocItem item</span>)</span><br><span class="line">       </span>&#123;</span><br><span class="line">           PostSend(item.UserToken.SendEventArgs);</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;summary&gt;</span></span></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> 投递发送请求</span></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;/summary&gt;</span></span></span><br><span class="line">       <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">PostSend</span>(<span class="params">SocketAsyncEventArgs sendEventArgs</span>)</span><br><span class="line">       </span>&#123;</span><br><span class="line">           UserToken userToken = sendEventArgs.UserToken <span class="keyword">as</span> UserToken;</span><br><span class="line">           <span class="keyword">if</span> (userToken.AsyncSending == <span class="keyword">true</span>)</span><br><span class="line">               <span class="keyword">return</span>;<span class="comment">//正在发送</span></span><br><span class="line">           Monitor.Enter(userToken);</span><br><span class="line">           <span class="keyword">if</span> (sendEventArgs.CurrentOperating() != SocketAsyncOperating.Completed)</span><br><span class="line">           &#123;</span><br><span class="line">               Interlocked.Increment(<span class="keyword">ref</span> _sendErrorCount);</span><br><span class="line">               Log.WriteLog(IocpLogType.Error, <span class="string">"投递发送错误，套接字正在操作中 "</span>);</span><br><span class="line">               <span class="keyword">return</span>;</span><br><span class="line">           &#125;</span><br><span class="line">           <span class="keyword">int</span> count = <span class="number">0</span>;</span><br><span class="line">           <span class="keyword">if</span> (userToken.SendPackageBuffer.GetFirstPackage(<span class="keyword">ref</span> count))</span><br><span class="line">           &#123;</span><br><span class="line">               userToken.AsyncSending = <span class="keyword">true</span>;</span><br><span class="line">               sendEventArgs.SetBuffer(userToken.SendPackageBuffer.Buffer, <span class="number">0</span>, count);</span><br><span class="line">               <span class="keyword">bool</span> waitFlag = sendEventArgs.AcceptSocket.SendAsync(sendEventArgs);</span><br><span class="line">               <span class="keyword">if</span> (waitFlag == <span class="keyword">false</span>)</span><br><span class="line">               &#123;</span><br><span class="line">                   ProcessSend(sendEventArgs);</span><br><span class="line">               &#125;</span><br><span class="line">           &#125;</span><br><span class="line">           <span class="comment">//无待发送数据</span></span><br><span class="line">           Monitor.Exit(userToken);</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;summary&gt;</span></span></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> 发送完成</span></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;/summary&gt;</span></span></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;param name="sendEventArgs"&gt;</span><span class="xmlDocTag">&lt;/param&gt;</span></span></span><br><span class="line">       <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">ProcessSend</span>(<span class="params">System.Net.Sockets.SocketAsyncEventArgs sendEventArgs</span>)</span><br><span class="line">       </span>&#123;</span><br><span class="line">           UserToken userToken = sendEventArgs.UserToken <span class="keyword">as</span> UserToken;</span><br><span class="line">           Monitor.Enter(userToken);</span><br><span class="line">           <span class="comment">//数据发送完毕，清除第一个包</span></span><br><span class="line">           userToken.SendPackageBuffer.ClearFirstPackage();</span><br><span class="line">           <span class="keyword">if</span> (sendEventArgs.SocketError != SocketError.Success)</span><br><span class="line">           &#123;</span><br><span class="line">               Interlocked.Increment(<span class="keyword">ref</span> _sendErrorCount);</span><br><span class="line">               <span class="comment">//发送失败，关闭客户端</span></span><br><span class="line">               CloseClientSocket(userToken, CloseSocketReason.SendException);</span><br><span class="line">           &#125;</span><br><span class="line">           <span class="keyword">else</span></span><br><span class="line">           &#123;</span><br><span class="line">               <span class="keyword">int</span> count = <span class="number">0</span>;</span><br><span class="line">               <span class="keyword">if</span> (userToken.SendPackageBuffer.GetFirstPackage(<span class="keyword">ref</span> count))</span><br><span class="line">               &#123;</span><br><span class="line">                   userToken.AsyncSending = <span class="keyword">true</span>;</span><br><span class="line">                   userToken.SendEventArgs.SetBuffer(userToken.SendPackageBuffer.Buffer, <span class="number">0</span>, count);</span><br><span class="line">                   <span class="keyword">bool</span> waitFlag = userToken.SendEventArgs.AcceptSocket.SendAsync(userToken.SendEventArgs);</span><br><span class="line">                   <span class="keyword">if</span> (waitFlag == <span class="keyword">false</span>)</span><br><span class="line">                   &#123;</span><br><span class="line">                       ProcessSend(userToken.SendEventArgs);</span><br><span class="line">                   &#125;</span><br><span class="line">               &#125;</span><br><span class="line">               <span class="keyword">else</span></span><br><span class="line">                   userToken.AsyncSending = <span class="keyword">false</span>;</span><br><span class="line">               <span class="comment">//投递接收</span></span><br><span class="line">               PostReceive(userToken.ReceiveEventArgs);</span><br><span class="line">           &#125;</span><br><span class="line">           Monitor.Exit(userToken);</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">       <span class="preprocessor">#<span class="keyword">endregion</span></span></span><br></pre></td></tr></table></figure></p>
+<h3 id="处理超时">处理超时</h3><p>系统启动时开始检测套接字生存周期超时和接收超时，若超时直接关闭客户端。<br>代码如下：<br><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br></pre></td><td class="code"><pre><span class="line">// 超时检测线程</span><br><span class="line">    public class CheckOverTime&lt;T&gt; where T : UserToken</span><br><span class="line">    &#123;</span><br><span class="line">        //运行状态</span><br><span class="line">        private bool _runing = false;</span><br><span class="line">        //每次检测后的休眠时间</span><br><span class="line">        private int _sleepTime;</span><br><span class="line">        //设定的超时时间</span><br><span class="line">        private int _overtime;</span><br><span class="line">        //超时检测线程</span><br><span class="line">        private Thread _thread;</span><br><span class="line">        //待检测的数据集合</span><br><span class="line">        private DataPool&lt;T&gt; _checkOvertimeList;</span><br><span class="line">        //检测方法的委托</span><br><span class="line">        Action&lt;T, int&gt; _doCheck;</span><br><span class="line"></span><br><span class="line">        public CheckOverTime(int sleepTime, int overtime, DataPool&lt;T&gt; checkOvertimeList, Action&lt;T, int&gt; doCheck)</span><br><span class="line">        &#123;</span><br><span class="line">            _thread = new Thread(Check);</span><br><span class="line">            _thread.IsBackground = true;</span><br><span class="line">            _sleepTime = sleepTime;</span><br><span class="line">            _overtime = overtime;</span><br><span class="line">            _checkOvertimeList = checkOvertimeList;</span><br><span class="line">            _doCheck = doCheck;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        /// &lt;summary&gt;</span><br><span class="line">        /// 开始检测</span><br><span class="line">        /// &lt;/summary&gt;</span><br><span class="line">        public void Start()</span><br><span class="line">        &#123;</span><br><span class="line">            _runing = true;</span><br><span class="line">            _thread = new Thread(Check);</span><br><span class="line">            _thread.IsBackground = true;</span><br><span class="line">            _thread.Start();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        /// &lt;summary&gt;</span><br><span class="line">        /// 停止检测</span><br><span class="line">        /// &lt;/summary&gt;</span><br><span class="line">        public void Stop()</span><br><span class="line">        &#123;</span><br><span class="line">            _runing = false;</span><br><span class="line">            try</span><br><span class="line">            &#123;</span><br><span class="line">                _thread.Abort();</span><br><span class="line">                _thread = null;</span><br><span class="line">            &#125;</span><br><span class="line">            catch &#123; &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        /// &lt;summary&gt;</span><br><span class="line">        /// 开始遍历检测</span><br><span class="line">        /// &lt;/summary&gt;</span><br><span class="line">        public void Check()</span><br><span class="line">        &#123;</span><br><span class="line">            //Abort线程会使其触发一个ThreadAbortException异常，所以try起来</span><br><span class="line">            try</span><br><span class="line">            &#123;</span><br><span class="line">                while (_runing)</span><br><span class="line">                &#123;</span><br><span class="line">                    T[] array = _checkOvertimeList.ToArray();</span><br><span class="line">                    foreach (T item in array)</span><br><span class="line">                    &#123;</span><br><span class="line">                        _doCheck(item, _overtime);</span><br><span class="line">                    &#125;</span><br><span class="line">                    Thread.Sleep(_sleepTime);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            catch &#123; &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">#region 超时处理</span><br><span class="line">        /// &lt;summary&gt;</span><br><span class="line">        /// 检查接收超时</span><br><span class="line">        /// &lt;/summary&gt;</span><br><span class="line">        /// &lt;param name="userToken"&gt;&lt;/param&gt;</span><br><span class="line">        /// &lt;param name="overtime"&gt;&lt;/param&gt;</span><br><span class="line">        private void CheckReceiveOverTime(UserToken userToken, int overtime)</span><br><span class="line">        &#123;</span><br><span class="line">            if ((DateTime.Now - userToken.ReceiveDateTime).TotalMilliseconds &gt; overtime)</span><br><span class="line">            &#123;</span><br><span class="line">                Monitor.Enter(userToken);</span><br><span class="line">                ReceiveOverTime(userToken);</span><br><span class="line">                Monitor.Exit(userToken);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        /// &lt;summary&gt;</span><br><span class="line">        /// 检查套接字超时</span><br><span class="line">        /// &lt;/summary&gt;</span><br><span class="line">        /// &lt;param name="userToken"&gt;&lt;/param&gt;</span><br><span class="line">        private void CheckSocketOverTime(UserToken userToken, int overtime)</span><br><span class="line">        &#123;</span><br><span class="line">            if (overtime == 0)</span><br><span class="line">                return;</span><br><span class="line">            if ((DateTime.Now - userToken.ConnectDateTime).TotalMilliseconds &gt; overtime)</span><br><span class="line">            &#123;</span><br><span class="line">                Monitor.Enter(userToken);</span><br><span class="line">                SocketOverTime(userToken);</span><br><span class="line">                Monitor.Exit(userToken);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        /// &lt;summary&gt;</span><br><span class="line">        /// 接收超时</span><br><span class="line">        /// &lt;/summary&gt;</span><br><span class="line">        /// &lt;param name="userToken"&gt;&lt;/param&gt;</span><br><span class="line">        /// &lt;param name="type"&gt;&lt;/param&gt;</span><br><span class="line">        private void ReceiveOverTime(UserToken userToken)</span><br><span class="line">        &#123;</span><br><span class="line">            _receiveOvertimePool.Remove(userToken);</span><br><span class="line">            CloseClientSocket(userToken, CloseSocketReason.ReceiveOvertime);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        /// &lt;summary&gt;</span><br><span class="line">        /// 套接字活动时间超时</span><br><span class="line">        /// &lt;/summary&gt;</span><br><span class="line">        /// &lt;param name="userToken"&gt;&lt;/param&gt;</span><br><span class="line">        /// &lt;param name="type"&gt;&lt;/param&gt;</span><br><span class="line">        private void SocketOverTime(UserToken userToken)</span><br><span class="line">        &#123;</span><br><span class="line">            CloseClientSocket(userToken, CloseSocketReason.ActiveOverTime);</span><br><span class="line">        &#125;</span><br><span class="line">        #endregion</span><br></pre></td></tr></table></figure></p>
+<h2 id="结束">结束</h2><p>有很多非关键的代码没有一一写出来，可以下载完整项目代码查看，<a href="http://www.knna.me/files/iocp.rar">这里下载</a>。</p>
+<p>IOCP完成端口框架大致就是如此，是不是也没想象中那么复杂呢，其实高并发、高性能程序的开发，<br>最关键的就是怀着一颗敬畏之心，对敲出的每一行代码慎之又慎，才会有高效的程序。</p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/IOCP高并发框架/">IOCP高并发框架</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/IOCP/">IOCP</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="http://www.knna.me/2015/10/11/IOCP完成端口实例（二）/" data-title="IOCP完成端口实例（二） | KNNA-个人博客" data-tsina="1661199722" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2015/10/21/使用ORM框架(EF6)基于插件模式封装数据访问层（一）从仓储层开始/" title="使用ORM框架(EF6)基于插件模式封装数据访问层（一）从仓储层开始">
+  <strong>上一篇：</strong><br/>
+  <span>
+  使用ORM框架(EF6)基于插件模式封装数据访问层（一）从仓储层开始</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2015/10/10/IOCP完成端口实例（一）/"  title="IOCP完成端口实例（一）">
+ <strong>下一篇：</strong><br/> 
+ <span>IOCP完成端口实例（一）
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2015/10/11/IOCP完成端口实例（二）/" data-title="IOCP完成端口实例（二）" data-url="http://www.knna.me/2015/10/11/IOCP完成端口实例（二）/"></div>
+</section>
+
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#IOCP框架核心功能"><span class="toc-number">1.</span> <span class="toc-text">IOCP框架核心功能</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#初始化"><span class="toc-number">1.1.</span> <span class="toc-text">初始化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#启动、停止"><span class="toc-number">1.2.</span> <span class="toc-text">启动、停止</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#接收连接"><span class="toc-number">1.3.</span> <span class="toc-text">接收连接</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#接收数据"><span class="toc-number">1.4.</span> <span class="toc-text">接收数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#发送数据"><span class="toc-number">1.5.</span> <span class="toc-text">发送数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#处理超时"><span class="toc-number">1.6.</span> <span class="toc-text">处理超时</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#结束"><span class="toc-number">2.</span> <span class="toc-text">结束</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/DotNet技术/" title="DotNet技术">DotNet技术<sup>13</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/IOCP高并发框架/" title="IOCP高并发框架">IOCP高并发框架<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ISO8583/" title="ISO8583">ISO8583<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Oracle/" title="Oracle">Oracle<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/PowerDesigner/" title="PowerDesigner">PowerDesigner<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客搭建/" title="博客搭建">博客搭建<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/虚拟机/" title="虚拟机">虚拟机<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/阅读/" title="阅读">阅读<sup>2</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/Oracle/" title="Oracle">Oracle<sup>11</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/PLSQL/" title="PLSQL">PLSQL<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/WPF/" title="WPF">WPF<sup>5</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/EF/" title="EF">EF<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Oracle虚拟机/" title="Oracle虚拟机">Oracle虚拟机<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ISO8583/" title="ISO8583">ISO8583<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/IOCP/" title="IOCP">IOCP<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/模板/" title="模板">模板<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/自定义控件/" title="自定义控件">自定义控件<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Socket/" title="Socket">Socket<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Mahapps-Metro/" title="Mahapps.Metro">Mahapps.Metro<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/MVVM/" title="MVVM">MVVM<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/PowerDesigner/" title="PowerDesigner">PowerDesigner<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/领域驱动设计/" title="领域驱动设计">领域驱动设计<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/人生就是一场突如其来的旅行/" title="人生就是一场突如其来的旅行">人生就是一场突如其来的旅行<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Oracle问题/" title="Oracle问题">Oracle问题<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/反射/" title="反射">反射<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/GitHub/" title="GitHub">GitHub<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Log4net/" title="Log4net">Log4net<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="http://www.knna.me" target="_blank" title="欢迎互换外链">欢迎互换外链</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.wxzzz.com" target="_blank" title="王旭博客">王旭博客</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+  <div class="weiboshow">
+  <p class="asidetitle">新浪微博</p>
+    <iframe width="100%" height="300" class="share_self"  frameborder="0" scrolling="no" src="http://widget.weibo.com/weiboshow/index.php?language=&width=0&height=300&fansRow=2&ptype=1&speed=0&skin=1&isTitle=1&noborder=1&isWeibo=1&isFans=1&uid=1661199722&verifier=3b01a22b&dpc=1"></iframe>
+</div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<section class="info">
+		<p> 	今天拥有的东西，可能恰恰是阻碍你前行的包袱，  <br/>
+			放下包袱，不是失去，而是一次新的开始！</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		<a href="http://weibo.com/1661199722" target="_blank" class="icon-weibo" title="微博"></a>
+		
+		
+		<a href="https://github.com/knna" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		<a href="https://twitter.com/knnapan" target="_blank" class="icon-twitter" title="twitter"></a>
+		
+		
+		
+		
+		
+		
+		
+	</div>
+			
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2015 
+		
+		<a href="/about" target="_blank" title="KNNA">KNNA</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<div class="hoverqrcode clearfix"></div>',
+  '<a class="overlay" id="qrcode"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+
+  $('.hoverqrcode').hide();
+
+  var myWidth = 0;
+  function updatehoverqrcode(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+    var qrsize = myWidth > 1024 ? 200:100;
+    var options = {render: 'image', size: qrsize, fill: '#2ca6cb', text: url, radius: 0.5, quiet: 1};
+    var p = $('.article-share-qrcode').position();
+    $('.hoverqrcode').empty().css('width', qrsize).css('height', qrsize)
+                          .css('left', p.left-qrsize/2+20).css('top', p.top-qrsize-10)
+                          .qrcode(options);
+  };
+  $(window).resize(function(){
+    $('.hoverqrcode').hide();
+  });
+  $('.article-share-qrcode').click(function(){
+    updatehoverqrcode();
+    $('.hoverqrcode').toggle();
+  });
+  $('.article-share-qrcode').hover(function(){}, function(){
+      $('.hoverqrcode').hide();
+  });
+});   
+</script>
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"KNNA"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F28572b2f7a37d925fcb70c7147b2cac9' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="返回顶部"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<script>
+var option = {
+  engineKey: '4fcfbbd7e56708fd8651'
+};
+(function(w,d,t,u,n,s,e){
+  s = d.createElement(t);
+  s.src = u;
+  s.async = 1;
+  w[n] = function(r){
+    w[n].opts = r;
+  };
+  e = d.getElementsByTagName(t)[0];
+  e.parentNode.insertBefore(s, e);
+})(window,document,'script','//tinysou-cdn.b0.upaiyun.com/ts.js','_ts');
+_ts(option);
+</script>
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

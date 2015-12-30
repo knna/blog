@@ -1,0 +1,613 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>ISO8583报文协议128位域的说明 | KNNA-个人博客</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="KNNA">
+    
+
+    
+    <meta name="description" content="ISO8583 ISO8583_1993[] ={0, “Bit Map                                           “, “位元表                “, “              “, 0, FT_B   , 8,1, “Bit Map/Extended                                  “, “扩展位元表">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ISO8583报文协议128位域的说明">
+<meta property="og:url" content="http://www.knna.me/2015/03/30/ISO8583报文协议128位域的说明/index.html">
+<meta property="og:site_name" content="KNNA-个人博客">
+<meta property="og:description" content="ISO8583 ISO8583_1993[] ={0, “Bit Map                                           “, “位元表                “, “              “, 0, FT_B   , 8,1, “Bit Map/Extended                                  “, “扩展位元表">
+<meta property="og:updated_time" content="2015-09-17T08:24:52.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="ISO8583报文协议128位域的说明">
+<meta name="twitter:description" content="ISO8583 ISO8583_1993[] ={0, “Bit Map                                           “, “位元表                “, “              “, 0, FT_B   , 8,1, “Bit Map/Extended                                  “, “扩展位元表">
+<meta name="twitter:creator" content="@knnapan">
+
+    
+    <link rel="alternative" href="/atom.xml" title="KNNA-个人博客" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+</head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.png" alt="KNNA-个人博客" title="KNNA-个人博客"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="KNNA-个人博客">KNNA-个人博客</a></h1>
+				<h2 class="blog-motto">.NET Developer</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">首页</a></li>
+					
+						<li><a href="/archives">文章</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+ 					
+						<form class="search">
+							<label>Search</label>
+						<input type="text" id="ts-search-input" name="q" size="30" placeholder="搜索"><br>
+						</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2015/03/30/ISO8583报文协议128位域的说明/" title="ISO8583报文协议128位域的说明" itemprop="url">ISO8583报文协议128位域的说明</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="KNNA" target="_blank" itemprop="author">KNNA</a>
+		
+  <p class="article-time">
+    <time datetime="2015-03-30T07:25:43.000Z" itemprop="datePublished"> 发表于 2015-03-30</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		
+			
+		
+		</div>
+		
+		<p>ISO8583 ISO8583_1993[] =<br>{<br>0, “Bit Map                                           “, “位元表                “, “              “, 0, FT_B   , 8,<br>1, “Bit Map/Extended                                  “, “扩展位元表            “, “              “, 0, FT_B   , 8,<br>2, “Primary Account Number                            “, “主帐号                “, “LLVAR         “, 2, FT_N   , 19,<br>3, “Processing Code                                   “, “处理代码              “, “              “, 0, FT_N   , 6,<br>4, “Amount, Transaction                               “, “交易金额              “, “              “, 0, FT_N   , 12,<br>5, “Amount, Reconciliation                            “, “对帐金额              “, “              “, 0, FT_N   , 12,<br>6, “Amount, Cardholder Billing                        “, “持卡人签单金额        “, “              “, 0, FT_N   , 12,<br>7, “Date and Time, Transmission                       “, “传输日期和时间        “, “MMDDhhmmss    “, 0, FT_N   , 10,<br>8, “Amount, Cardholder Billing Fee                    “, “持卡人签单手续费金额  “, “              “, 0, FT_N   , 8,<br>9, “Conversion Rate, Reconciliation                   “, “对帐兑换率            “, “              “, 0, FT_N   , 8,<br>10, “Conversion Rate, Cardholder Billing               “, “持卡人签单兑换率      “, “              “, 0, FT_N   , 8,<br>11, “Systems Trace Audit Number                        “, “系统跟踪审计号        “, “              “, 0, FT_N   , 6,<br>12, “Date and Time, Local Transaction                  “, “本地交易日期时间      “, “YYMMDDhhmmss  “, 0, FT_N   , 12,<br>13, “Date, Effective                                   “, “生效日期              “, “YYMM          “, 0, FT_N   , 4,<br>14, “Date, Expiration                                  “, “截止日期              “, “YYMM          “, 0, FT_N   , 4,<br>15, “Date, Settlement                                  “, “清算日期              “, “YYMMDD        “, 0, FT_N   , 6,<br>16, “Date, Conversion                                  “, “兑换日期              “, “MMDD          “, 0, FT_N   , 4,<br>17, “Date, Capture                                     “, “受理日期              “, “MMDD          “, 0, FT_N   , 4,<br>18, “Merchant Type                                     “, “商户类型              “, “              “, 0, FT_N   , 4,<br>19, “Country Code, Acquiring Institution               “, “代理机构国家代码      “, “              “, 0, FT_N   , 3,<br>20, “Country Code, Primary Account Number              “, “主帐号国家代码        “, “              “, 0, FT_N   , 3,<br>21, “Country Code, Forwarding Institution              “, “发送机构国家代码      “, “              “, 0, FT_N   , 3,<br>22, “Point of Service Data Code                        “, “服务点数据代码        “, “              “, 0, FT_AN  , 12,<br>23, “Card Sequence Number                              “, “卡顺序号              “, “              “, 0, FT_N   , 3,<br>24, “Function Code                                     “, “功能代码              “, “              “, 0, FT_N   , 3,<br>25, “Message Reason Code                               “, “报文理由代码          “, “              “, 0, FT_N   , 4,<br>26, “Card Acceptor Business Code                       “, “受卡方业务代码        “, “              “, 0, FT_N   , 4,<br>27, “Approval Code Length                              “, “批准代码长度          “, “              “, 0, FT_N   , 1,<br>28, “Date, Reconciliation                              “, “对帐日期              “, “YYMMDD        “, 0, FT_N   , 6,<br>29, “Reconciliation Indicator                          “, “对帐指示符            “, “              “, 0, FT_N   , 3,<br>30, “Amounts, Original                                 “, “原始金额              “, “              “, 0, FT_N   , 24,<br>31, “Acquirer Reference Data                           “, “代理方参考数据        “, “LLVAR         “, 2, FT_ANS , 99,<br>32, “Acquirer Institution ID Code                      “, “代理方机构标识码      “, “LLVAR         “, 2, FT_N   , 11,<br>33, “Forwarding Institution ID Code                    “, “发送机构标识码        “, “LLVAR         “, 2, FT_N   , 11,<br>34, “Primary Account Number, Extended                  “, “扩展的主帐号          “, “LLVAR         “, 2, FT_NS  , 28,<br>35, “Track 2 Data                                      “, “第二磁道数据          “, “LLVAR         “, 2, FT_Z   , 37,<br>36, “Track 3 Data                                      “, “第三磁道数据          “, “LLLVAR        “, 3, FT_Z   , 104,<br>37, “Retrieval Reference Number                        “, “检索参考号            “, “              “, 0, FT_ANP , 12,<br>38, “Approval Code                                     “, “批准代码              “, “              “, 0, FT_ANP , 6,<br>39, “Action Code                                       “, “动作代码              “, “              “, 0, FT_N   , 3,<br>40, “Service Code                                      “, “服务代码              “, “              “, 0, FT_N   , 3,<br>41, “Card Acceptor Terminal ID                         “, “受卡方终端标识        “, “              “, 0, FT_ANS , 8,<br>42, “Card Acceptor ID Code                             “, “受卡方标识代码        “, “              “, 0, FT_ANS , 15,<br>43, “Card Acceptor Name/Location                       “, “受卡方名称/地点       “, “LLVAR         “, 2, FT_ANS , 99,<br>44, “Additional Response Data                          “, “附加响应数据          “, “LLVAR         “, 2, FT_ANS , 99,<br>45, “Track 1 Data                                      “, “第一磁道数据          “, “LLVAR         “, 2, FT_ANS , 76,<br>46, “Amounts, Fees                                     “, “手续费金额            “, “LLLVAR        “, 3, FT_ANS , 204,<br>47, “Additional Data - National                        “, “附加数据-国家         “, “LLLVAR        “, 3, FT_ANS , 999,<br>48, “Additional Data - Private                         “, “附加数据-民间         “, “LLLVAR        “, 3, FT_ANS , 999,<br>49, “Currency Code, Transaction                        “, “交易货币代码          “, “              “, 0, FT_A   , 3,<br>50, “Currency Code, Reconciliation                     “, “对帐货币代码          “, “              “, 0, FT_A   , 3,<br>51, “Currency Code, Cardholder Billing                 “, “持卡人签单货币代码    “, “              “, 0, FT_A   , 3,<br>52, “Personal ID (PIN) Data                            “, “用户密码PIN数据       “, “              “, 0, FT_B   , 8,<br>53, “Security Related Control Information              “, “安全控制信息          “, “LLVAR         “, 2, FT_B   , 48,<br>54, “Amounts, Additional                               “, “附加金额              “, “LLLVAR        “, 3, FT_ANS , 120,<br>55, “Integrated Circuit Card System Related Data       “, “IC卡系统相关数据      “, “LLLVAR        “, 3, FT_B   , 48,<br>56, “Original Data Elements                            “, “原始数据元            “, “LLVAR         “, 2, FT_N   , 35,<br>57, “Authorization Life Cycle Code                     “, “授权生命周期代码      “, “              “, 0, FT_N   , 3,<br>58, “Authorizing Agent Institution ID Code             “, “授权代理机构标识代码  “, “LLVAR         “, 2, FT_N   , 11,<br>59, “Transport Data                                    “, “传输数据              “, “LLLVAR        “, 3, FT_ANS , 999,<br>60, “Reserved for National Use                         “, “保留给国家使用        “, “LLLVAR        “, 3, FT_ANS , 999,<br>61, “Reserved for National Use                         “, “保留给国家使用        “, “LLLVAR        “, 3, FT_ANS , 999,<br>62, “Reserved for Private Use                          “, “保留给民间使用        “, “LLLVAR        “, 3, FT_ANS , 999,<br>63, “Reserved for Private Use                          “, “保留给民间使用        “, “LLLVAR        “, 3, FT_ANS , 999,<br>64, “Message Authentication Code Field                 “, “报文鉴别代码字段      “, “              “, 0, FT_B   , 8,<br>65, “Reserved for ISO                                  “, “保留给ISO使用         “, “              “, 0, FT_B   , 8,<br>66, “Amounts, Original Fees                            “, “原始手续费金额        “, “LLLVAR        “, 3, FT_ANS , 204,<br>67, “Extended Payment Data                             “, “扩展的付款数据        “, “              “, 0, FT_N   , 2,<br>68, “Country Code, Receiving Institution               “, “接收机构国家代码      “, “              “, 0, FT_N   , 3,<br>69, “Country Code, Settlement Institution              “, “清算机构国家代码      “, “              “, 0, FT_N   , 3,<br>70, “Country Code, Authorizing Agent Institution       “, “授权代理机构国家代码  “, “              “, 0, FT_N   , 3,<br>71, “Message Number                                    “, “报文编号              “, “              “, 0, FT_N   , 8,<br>72, “Data, Record                                      “, “数据记录              “, “LLLVAR        “, 3, FT_ANS , 999,<br>73, “Date, Action                                      “, “动作日期              “, “YYMMDD        “, 0, FT_N   , 6,<br>74, “Credits, Number                                   “, “贷记笔数              “, “              “, 0, FT_N   , 10,<br>75, “Credits, Reversal Number                          “, “撤消贷记笔数          “, “              “, 0, FT_N   , 10,<br>76, “Debits, Number                                    “, “借记笔数              “, “              “, 0, FT_N   , 10,<br>77, “Debits, Reversal Number                           “, “撤消借记笔数          “, “              “, 0, FT_N   , 10,<br>78, “Transfer, Number                                  “, “转帐笔数              “, “              “, 0, FT_N   , 10,<br>79, “Transfer, Reversal Number                         “, “撤消转帐笔数          “, “              “, 0, FT_N   , 10,<br>80, “Inquiries, Number                                 “, “查询笔数              “, “              “, 0, FT_N   , 10,<br>81, “Authorizations, Number                            “, “授权笔数              “, “              “, 0, FT_N   , 10,<br>82, “Inquiries, Reversal Number                        “, “撤消查询笔数          “, “              “, 0, FT_N   , 10,<br>83, “Payments, Number                                  “, “付款笔数              “, “              “, 0, FT_N   , 10,<br>84, “Payments, Reversal Number                         “, “撤消付款笔数          “, “              “, 0, FT_N   , 10,<br>85, “Fee Collections, Number                           “, “手续费收取笔数        “, “              “, 0, FT_N   , 10,<br>86, “Credits, Amount                                   “, “贷记金额              “, “              “, 0, FT_N   , 16,<br>87, “Credits, Reversal Amount                          “, “撤消贷记金额          “, “              “, 0, FT_N   , 16,<br>88, “Debits, Amount                                    “, “借记金额              “, “              “, 0, FT_N   , 16,<br>89, “Debits, Reversal Amount                           “, “撤消借记金额          “, “              “, 0, FT_N   , 16,<br>90, “Authorizations, Reversal Number                   “, “撤消授权笔数          “, “              “, 0, FT_N   , 10,<br>91, “Country Code, Transaction Destination Institution “, “交易终点机构国家代码  “, “              “, 0, FT_N   , 3,<br>92, “Country Code, Transaction Originator Institution  “, “交易发起机构国家代码  “, “              “, 0, FT_N   , 3,<br>93, “Transaction Destination Institution ID Code       “, “交易终点机构标识代码  “, “LLVAR         “, 2, FT_N   , 11,<br>94, “Transaction Originator Institution ID Code        “, “交易发起机构标识代码  “, “LLVAR         “, 2, FT_N   , 11,<br>95, “Card Issuer Reference Data                        “, “发卡方参考数据        “, “LLVAR         “, 2, FT_ANS , 99,<br>96, “Key Management Data                               “, “密钥管理数据          “, “LLLVAR        “, 3, FT_B   , 999,<br>97, “Amount, Net Reconciliation                        “, “净对帐金额            “, “              “, 0, FT_XN  , 16,<br>98, “Payee                                             “, “收款人                “, “              “, 0, FT_ANS , 25,<br>99, “Settlement Institution ID Code                    “, “清算机构标识代码      “, “LLVAR         “, 2, FT_AN  , 11,<br>100, “Receiving Institution ID Code                     “, “接收机构标识代码      “, “LLVAR         “, 2, FT_AN  , 11,<br>101, “File Name                                         “, “文件名                “, “LLVAR         “, 2, FT_ANS , 17,<br>102, “Account ID 1                                      “, “帐户标识1             “, “LLVAR         “, 2, FT_ANS , 28,<br>103, “Account ID 2                                      “, “帐户标识2             “, “LLVAR         “, 2, FT_ANS , 28,<br>104, “Transaction Description                           “, “交易说明              “, “LLLVAR        “, 3, FT_ANS , 100,<br>105, “Credits, Chargeback Amount                        “, “反向贷记金额          “, “              “, 0, FT_N   , 16,<br>106, “Debits, Chargeback Amount                         “, “反向借记金额          “, “              “, 0, FT_N   , 16,<br>107, “Credits, Chargeback Number                        “, “反向贷记笔数          “, “              “, 0, FT_N   , 10,<br>108, “Debits, Chargeback Number                         “, “反向借记笔数          “, “              “, 0, FT_N   , 10,<br>109, “Credits, Fee Amounts                              “, “手续费贷记金额        “, “LLVAR         “, 2, FT_ANS , 84,<br>110, “Debits, Fee Amounts                               “, “手续费借记金额        “, “LLVAR         “, 2, FT_ANS , 84,<br>111, “Reserved for ISO Use                              “, “保留给ISO使用         “, “LLLVAR        “, 3, FT_ANS , 999,<br>112, “Reserved for ISO Use                              “, “保留给ISO使用         “, “LLLVAR        “, 3, FT_ANS , 999,<br>113, “Reserved for ISO Use                              “, “保留给ISO使用         “, “LLLVAR        “, 3, FT_ANS , 999,<br>114, “Reserved for ISO Use                              “, “保留给ISO使用         “, “LLLVAR        “, 3, FT_ANS , 999,<br>115, “Reserved for ISO Use                              “, “保留给ISO使用         “, “LLLVAR        “, 3, FT_ANS , 999,<br>116, “Reserved for National Use                         “, “保留给国家使用        “, “LLLVAR        “, 3, FT_ANS , 999,<br>117, “Reserved for National Use                         “, “保留给国家使用        “, “LLLVAR        “, 3, FT_ANS , 999,<br>118, “Reserved for National Use                         “, “保留给国家使用        “, “LLLVAR        “, 3, FT_ANS , 999,<br>119, “Reserved for National Use                         “, “保留给国家使用        “, “LLLVAR        “, 3, FT_ANS , 999,<br>120, “Reserved for National Use                         “, “保留给国家使用        “, “LLLVAR        “, 3, FT_ANS , 999,<br>121, “Reserved for National Use                         “, “保留给国家使用        “, “LLLVAR        “, 3, FT_ANS , 999,<br>122, “Reserved for National Use                         “, “保留给国家使用        “, “LLLVAR        “, 3, FT_ANS , 999,<br>123, “Reserved for Private Use                          “, “保留给民间使用        “, “LLLVAR        “, 3, FT_ANS , 999,<br>124, “Reserved for Private Use                          “, “保留给民间使用        “, “LLLVAR        “, 3, FT_ANS , 999,<br>125, “Reserved for Private Use                          “, “保留给民间使用        “, “LLLVAR        “, 3, FT_ANS , 999,<br>126, “Reserved for Private Use                          “, “保留给民间使用        “, “LLLVAR        “, 3, FT_ANS , 999,<br>127, “Reserved for Private Use                          “, “保留给民间使用        “, “LLLVAR        “, 3, FT_ANS , 999,<br>128, “Message Authentication Code Field                 “, “报文鉴别代码字段      “, “              “, 0, FT_B   , 8,<br>};</p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/ISO8583/">ISO8583</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/ISO8583/">ISO8583</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="http://www.knna.me/2015/03/30/ISO8583报文协议128位域的说明/" data-title="ISO8583报文协议128位域的说明 | KNNA-个人博客" data-tsina="1661199722" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2015/04/10/Oracle 12C 与PLSql安装部署（一）/" title="Oracle 12C 与PLSql安装部署（一）">
+  <strong>上一篇：</strong><br/>
+  <span>
+  Oracle 12C 与PLSql安装部署（一）</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2015/03/12/ISO8583报文协议/"  title="ISO8583报文协议">
+ <strong>下一篇：</strong><br/> 
+ <span>ISO8583报文协议
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2015/03/30/ISO8583报文协议128位域的说明/" data-title="ISO8583报文协议128位域的说明" data-url="http://www.knna.me/2015/03/30/ISO8583报文协议128位域的说明/"></div>
+</section>
+
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+ 
+ 
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/DotNet技术/" title="DotNet技术">DotNet技术<sup>13</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/IOCP高并发框架/" title="IOCP高并发框架">IOCP高并发框架<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ISO8583/" title="ISO8583">ISO8583<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Oracle/" title="Oracle">Oracle<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/PowerDesigner/" title="PowerDesigner">PowerDesigner<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客搭建/" title="博客搭建">博客搭建<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/虚拟机/" title="虚拟机">虚拟机<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/阅读/" title="阅读">阅读<sup>2</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/Oracle/" title="Oracle">Oracle<sup>11</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/PLSQL/" title="PLSQL">PLSQL<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/WPF/" title="WPF">WPF<sup>5</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/EF/" title="EF">EF<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Oracle虚拟机/" title="Oracle虚拟机">Oracle虚拟机<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ISO8583/" title="ISO8583">ISO8583<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/IOCP/" title="IOCP">IOCP<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/模板/" title="模板">模板<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/自定义控件/" title="自定义控件">自定义控件<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Socket/" title="Socket">Socket<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Mahapps-Metro/" title="Mahapps.Metro">Mahapps.Metro<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/MVVM/" title="MVVM">MVVM<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/PowerDesigner/" title="PowerDesigner">PowerDesigner<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/领域驱动设计/" title="领域驱动设计">领域驱动设计<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/人生就是一场突如其来的旅行/" title="人生就是一场突如其来的旅行">人生就是一场突如其来的旅行<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Oracle问题/" title="Oracle问题">Oracle问题<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/反射/" title="反射">反射<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/GitHub/" title="GitHub">GitHub<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Log4net/" title="Log4net">Log4net<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="http://www.knna.me" target="_blank" title="欢迎互换外链">欢迎互换外链</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.wxzzz.com" target="_blank" title="王旭博客">王旭博客</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+  <div class="weiboshow">
+  <p class="asidetitle">新浪微博</p>
+    <iframe width="100%" height="300" class="share_self"  frameborder="0" scrolling="no" src="http://widget.weibo.com/weiboshow/index.php?language=&width=0&height=300&fansRow=2&ptype=1&speed=0&skin=1&isTitle=1&noborder=1&isWeibo=1&isFans=1&uid=1661199722&verifier=3b01a22b&dpc=1"></iframe>
+</div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<section class="info">
+		<p> 	今天拥有的东西，可能恰恰是阻碍你前行的包袱，  <br/>
+			放下包袱，不是失去，而是一次新的开始！</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		<a href="http://weibo.com/1661199722" target="_blank" class="icon-weibo" title="微博"></a>
+		
+		
+		<a href="https://github.com/knna" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		<a href="https://twitter.com/knnapan" target="_blank" class="icon-twitter" title="twitter"></a>
+		
+		
+		
+		
+		
+		
+		
+	</div>
+			
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2015 
+		
+		<a href="/about" target="_blank" title="KNNA">KNNA</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<div class="hoverqrcode clearfix"></div>',
+  '<a class="overlay" id="qrcode"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+
+  $('.hoverqrcode').hide();
+
+  var myWidth = 0;
+  function updatehoverqrcode(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+    var qrsize = myWidth > 1024 ? 200:100;
+    var options = {render: 'image', size: qrsize, fill: '#2ca6cb', text: url, radius: 0.5, quiet: 1};
+    var p = $('.article-share-qrcode').position();
+    $('.hoverqrcode').empty().css('width', qrsize).css('height', qrsize)
+                          .css('left', p.left-qrsize/2+20).css('top', p.top-qrsize-10)
+                          .qrcode(options);
+  };
+  $(window).resize(function(){
+    $('.hoverqrcode').hide();
+  });
+  $('.article-share-qrcode').click(function(){
+    updatehoverqrcode();
+    $('.hoverqrcode').toggle();
+  });
+  $('.article-share-qrcode').hover(function(){}, function(){
+      $('.hoverqrcode').hide();
+  });
+});   
+</script>
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"KNNA"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F28572b2f7a37d925fcb70c7147b2cac9' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="返回顶部"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<script>
+var option = {
+  engineKey: '4fcfbbd7e56708fd8651'
+};
+(function(w,d,t,u,n,s,e){
+  s = d.createElement(t);
+  s.src = u;
+  s.async = 1;
+  w[n] = function(r){
+    w[n].opts = r;
+  };
+  e = d.getElementsByTagName(t)[0];
+  e.parentNode.insertBefore(s, e);
+})(window,document,'script','//tinysou-cdn.b0.upaiyun.com/ts.js','_ts');
+_ts(option);
+</script>
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

@@ -1,0 +1,676 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>使用ORM框架(EF6)基于插件模式封装数据访问层（一）从仓储层开始 | KNNA-个人博客</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="KNNA">
+    
+
+    
+    <meta name="description" content="O/RM框架介绍全称：对象关系映射(Object Relational Mapping)，简称ORM，或O/RM。ORM的基本功能就是将系统需要持久化的类型匹配到持久化容器中，一般持久化容器就是数据库。ORM的优点是使用方便，对于增删改查这类一般性的应用非常简易，可以节省很多手动编写代码的时间和精力。它和领域驱动模型搭配开发非常好用，这里EF相关文章中的业务逻辑层使用领域驱动模式，关于领域驱动模型">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用ORM框架(EF6)基于插件模式封装数据访问层（一）从仓储层开始">
+<meta property="og:url" content="http://www.knna.me/2015/10/21/使用ORM框架(EF6)基于插件模式封装数据访问层（一）从仓储层开始/index.html">
+<meta property="og:site_name" content="KNNA-个人博客">
+<meta property="og:description" content="O/RM框架介绍全称：对象关系映射(Object Relational Mapping)，简称ORM，或O/RM。ORM的基本功能就是将系统需要持久化的类型匹配到持久化容器中，一般持久化容器就是数据库。ORM的优点是使用方便，对于增删改查这类一般性的应用非常简易，可以节省很多手动编写代码的时间和精力。它和领域驱动模型搭配开发非常好用，这里EF相关文章中的业务逻辑层使用领域驱动模式，关于领域驱动模型">
+<meta property="og:image" content="http://www.knna.me/images/public/8.jpg">
+<meta property="og:image" content="http://www.knna.me/images/public/9.jpg">
+<meta property="og:updated_time" content="2015-12-30T05:40:22.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="使用ORM框架(EF6)基于插件模式封装数据访问层（一）从仓储层开始">
+<meta name="twitter:description" content="O/RM框架介绍全称：对象关系映射(Object Relational Mapping)，简称ORM，或O/RM。ORM的基本功能就是将系统需要持久化的类型匹配到持久化容器中，一般持久化容器就是数据库。ORM的优点是使用方便，对于增删改查这类一般性的应用非常简易，可以节省很多手动编写代码的时间和精力。它和领域驱动模型搭配开发非常好用，这里EF相关文章中的业务逻辑层使用领域驱动模式，关于领域驱动模型">
+<meta name="twitter:creator" content="@knnapan">
+
+    
+    <link rel="alternative" href="/atom.xml" title="KNNA-个人博客" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+</head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.png" alt="KNNA-个人博客" title="KNNA-个人博客"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="KNNA-个人博客">KNNA-个人博客</a></h1>
+				<h2 class="blog-motto">.NET Developer</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">首页</a></li>
+					
+						<li><a href="/archives">文章</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+ 					
+						<form class="search">
+							<label>Search</label>
+						<input type="text" id="ts-search-input" name="q" size="30" placeholder="搜索"><br>
+						</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2015/10/21/使用ORM框架(EF6)基于插件模式封装数据访问层（一）从仓储层开始/" title="使用ORM框架(EF6)基于插件模式封装数据访问层（一）从仓储层开始" itemprop="url">使用ORM框架(EF6)基于插件模式封装数据访问层（一）从仓储层开始</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="KNNA" target="_blank" itemprop="author">KNNA</a>
+		
+  <p class="article-time">
+    <time datetime="2015-10-21T03:48:58.000Z" itemprop="datePublished"> 发表于 2015-10-21</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		
+			<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#O/RM框架介绍"><span class="toc-number">1.</span> <span class="toc-text">O/RM框架介绍</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#插件模式介绍"><span class="toc-number">2.</span> <span class="toc-text">插件模式介绍</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#仓储模式介绍"><span class="toc-number">3.</span> <span class="toc-text">仓储模式介绍</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#创建项目"><span class="toc-number">4.</span> <span class="toc-text">创建项目</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#项目结构"><span class="toc-number">4.1.</span> <span class="toc-text">项目结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#插件安装"><span class="toc-number">4.2.</span> <span class="toc-text">插件安装</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#仓储层"><span class="toc-number">5.</span> <span class="toc-text">仓储层</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#数据映射器接口"><span class="toc-number">5.1.</span> <span class="toc-text">数据映射器接口</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#组件接口"><span class="toc-number">5.2.</span> <span class="toc-text">组件接口</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#数据访问基类"><span class="toc-number">6.</span> <span class="toc-text">数据访问基类</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#下一节"><span class="toc-number">7.</span> <span class="toc-text">下一节</span></a></li></ol>
+		
+		</div>
+		
+		<h1 id="O/RM框架介绍">O/RM框架介绍</h1><p>全称：对象关系映射(Object Relational Mapping)，简称ORM，或O/RM。<br>ORM的基本功能就是将系统需要持久化的类型匹配到持久化容器中，一般持久化容器就是数据库。<br>ORM的优点是使用方便，对于增删改查这类一般性的应用非常简易，可以节省很多手动编写代码的时间和精力。<br>它和领域驱动模型搭配开发非常好用，这里EF相关文章中的业务逻辑层使用领域驱动模式，关于领域驱动模型会在这个系列文章完成后介绍。<br>EF是微软公司的ORM框架，目前最新版本是6.1.1，对MSSQL的支持比较好，网上介绍说对Oracle数据库有些操作支持不太好，暂时没有发现是哪些操作支持不好，在我的实例中对oracle进行基础CRUD操作，没有发现任何问题。<br>EF一共有三种开发模式：</p>
+<blockquote>
+<ul>
+<li>DB First数据库优先：首先设计好数据库，然后创建ADO.NET实体数据模型进行操作。</li>
+<li>Code First代码优先：不用设计数据库，只需在项目中写好类型，并将类型对应到数据库中，由EF来自动生成数据库。</li>
+<li>Model First模型优先：此模式和代码优先非常类似。都是由EF来自动创建数据库。</li>
+</ul>
+</blockquote>
+<p>在我们的示例中，采用的是Code First即代码优先模式，不用管数据库，EF在运行期会自动生成。</p>
+<h1 id="插件模式介绍">插件模式介绍</h1><p>数据访问组件将采用插件模式实现，这样可以完全将业务层和数据访问层解耦，达到面向接口编程的目的，并且在以后更换数据库或者修改组件实现的时候，完全不影响业务逻辑层，当然影响表现层就更无从说起了。</p>
+<h1 id="仓储模式介绍">仓储模式介绍</h1><p>仓储层（Repository）介于领域层与数据映射层（数据访问层）之间，在业务逻辑层的领域模型中，只包含了该领域模型相关的业务方法，<br>不包含任何与数据持久化相关的代码，所以这里使用了仓储模式来为每个领域模型提供数据的相关操作,并且领域层也不知道仓储层的任何信息。</p>
+<h1 id="创建项目">创建项目</h1><h2 id="项目结构">项目结构</h2><p>创建的项目结构如图：<br><img src="/images/public/8.jpg" alt="images"><br>项目说明：</p>
+<blockquote>
+<ul>
+<li>Domain领域驱动模型层：也就是业务逻辑层，这里的业务都是细粒度的接口。</li>
+<li>Common公共调用：提供通用工具类给各个层调用。</li>
+<li>Oracle、SqlServer、Mysql这三个分别是不同的数据访问组件：使用了插件模式，提供不同数据库的访问，并可以动态切换。</li>
+<li>Repository仓储层：抽象所有数据访问的接口，服务层通过使用此层提供的接口来调用所有功能；接口的实现由数据访问层的各个组件完成。</li>
+<li>App表现层：负责数据呈现和交互。</li>
+<li>Services服务层：此层介于业务逻辑层和表现层之间，提供粗粒度的接口供表现层调用，粗粒度的接口中调用业务逻辑层中的细粒度接口组合完成一个实际用例；一个粗粒度接口一般对应一个实际用例。</li>
+</ul>
+</blockquote>
+<h2 id="插件安装">插件安装</h2><blockquote>
+<ul>
+<li>在工具栏中定位到 工具-Nuget程序包管理器-管理解决方案的Nuget程序包。</li>
+<li>下载EF：在联机中搜索entityframework，并勾选安装到Oracle、Mysql、SqlServer项目中。</li>
+<li>MSSQL连接驱动：EF插件自带了MSSQL的驱动，无需再安装。</li>
+<li>MySql连接驱动：在联机中搜索mysql.data和mysql.data.entity，并勾选安装到mysql项目中。</li>
+<li>Oracle连接驱动：在联机中搜索Oracle.ManagedDataAccess和Oracle.ManagedDataAccess.EntityFramework，并勾选安装到Oracle项目中。</li>
+<li>数据访问层相关插件安装完成。</li>
+</ul>
+</blockquote>
+<p>这里是安装好插件后的列表,第一个和最后一个插件是用于控制反转的，在后续章节会介绍。<br><img src="/images/public/9.jpg" alt="images"></p>
+<h1 id="仓储层">仓储层</h1><h2 id="数据映射器接口">数据映射器接口</h2><p>IDataMapper泛型接口：每个业务逻辑层的领域模型在底层数据访问组件中对应一个数据映射器，数据映射器实现此接口，并填充接口方法的所有实现，此接口包含了类型与数据库映射的所有方法。包括以下几大类方法：</p>
+<blockquote>
+<ul>
+<li>对象增删改的方法</li>
+<li>获取LINQ查询对象的方法</li>
+<li>查询所有数据的方法</li>
+<li>根据条件获取数据的方法</li>
+<li>获取所有数据条数的方法</li>
+<li>根据条件获取所有数据条数的方法</li>
+<li>获取分页数据的方法</li>
+<li>根据条件获取分页数据的方法</li>
+<li>根据主键值获取对象的方法</li>
+<li>执行自定义SQL语句的方法</li>
+<li>查询自定义SQL语句的方法</li>
+</ul>
+</blockquote>
+<p>大部分方法还提供了多个重载版本，比如 GetAll 方法，一共有四个重载版本，他们分别是：</p>
+<blockquote>
+<ul>
+<li>GetAll() //获取所有数据</li>
+<li>GetAll(Expression<func<t,dynamic>&gt; selector) //获取所有数据并指定查询的字段，这里的参数为 lambda 表达式，用于提取一个匿名对象，对象中的属性就是需要查询的字段</func<t,dynamic></li>
+<li>GetAll(IQueryable query) //根据已有的linq查询对象获取对象所有数据，定义这个重载的原因是，有时调用GetAll方法需要对结果进行排序或填充外键数据操作，这时就可以使用获取LINQ查询对象的方法来获取linq对象，使用后面要介绍的工具类进行排序和数据填充，将已附加了操作的Linq查询对象直接传入方法即可。</li>
+<li>GetAll(IQueryable query, Expression<func<t,dynamic>&gt; selector) //据已有的linq查询对象获取对象所有数据并指定查询字段</func<t,dynamic></li>
+</ul>
+</blockquote>
+<p>IDataMapper泛型接口代码：<br>cs<figure class="highlight autoit"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><span class="line">/// &lt;summary&gt;</span><br><span class="line">/// 数据映射器接口</span><br><span class="line">/// &lt;/summary&gt;</span><br><span class="line">/// &lt;typeparam name=<span class="string">"T"</span>&gt;&lt;/typeparam&gt;</span><br><span class="line">public interface IDataMapper&lt;T&gt;  where T : class,new()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="preprocessor">#<span class="keyword">region</span> 持久化数据</span></span><br><span class="line">    bool Create(T item)<span class="comment">;</span></span><br><span class="line">    bool Update(T item)<span class="comment">;</span></span><br><span class="line">    bool Delete(T item)<span class="comment">;</span></span><br><span class="line">    <span class="preprocessor">#<span class="keyword">endregion</span></span></span><br><span class="line"></span><br><span class="line">    <span class="preprocessor">#<span class="keyword">region</span> 获取所有数据</span></span><br><span class="line">    IQueryable&lt;T&gt; GetQueryable()<span class="comment">;</span></span><br><span class="line">    IList&lt;T&gt; GetAll()<span class="comment">;</span></span><br><span class="line">    IList&lt;T&gt; GetAll(Expression&lt;<span class="function"><span class="keyword">Func</span>&lt;<span class="title">T</span>, <span class="title">dynamic</span>&gt;&gt; <span class="title">selector</span>);</span></span><br><span class="line"></span><br><span class="line">    IList&lt;T&gt; GetAll(IQueryable&lt;T&gt; query)<span class="comment">;</span></span><br><span class="line">    IList&lt;T&gt; GetAll(IQueryable&lt;T&gt; query, Expression&lt;<span class="function"><span class="keyword">Func</span>&lt;<span class="title">T</span>, <span class="title">dynamic</span>&gt;&gt; <span class="title">selector</span>);</span></span><br><span class="line">    <span class="preprocessor">#<span class="keyword">endregion</span></span></span><br><span class="line"></span><br><span class="line">    <span class="preprocessor">#<span class="keyword">region</span> 获取分页数据</span></span><br><span class="line">    //分页</span><br><span class="line">    IList&lt;T&gt; GetPage(<span class="built_in">int</span> pageIndex, <span class="built_in">int</span> pageSize, out <span class="built_in">int</span> total)<span class="comment">;</span></span><br><span class="line">    IList&lt;T&gt; GetPage(<span class="built_in">int</span> pageIndex, <span class="built_in">int</span> pageSize, out <span class="built_in">int</span> total, Expression&lt;<span class="function"><span class="keyword">Func</span>&lt;<span class="title">T</span>, <span class="title">dynamic</span>&gt;&gt; <span class="title">selector</span>);</span></span><br><span class="line"></span><br><span class="line">    IList&lt;T&gt; GetPage(IQueryable&lt;T&gt; query, <span class="built_in">int</span> pageIndex, <span class="built_in">int</span> pageSize, out <span class="built_in">int</span> total)<span class="comment">;</span></span><br><span class="line">    IList&lt;T&gt; GetPage(IQueryable&lt;T&gt; query, <span class="built_in">int</span> pageIndex, <span class="built_in">int</span> pageSize, out <span class="built_in">int</span> total, Expression&lt;<span class="function"><span class="keyword">Func</span>&lt;<span class="title">T</span>, <span class="title">dynamic</span>&gt;&gt; <span class="title">selector</span>);</span></span><br><span class="line">    //根据条件获取分页数据</span><br><span class="line">    IList&lt;T&gt; GetPageByCriteria(<span class="built_in">int</span> pageIndex, <span class="built_in">int</span> pageSize, out <span class="built_in">int</span> total, Expression&lt;<span class="function"><span class="keyword">Func</span>&lt;<span class="title">T</span>, <span class="title">bool</span>&gt;&gt; <span class="title">where</span>);</span></span><br><span class="line">    IList&lt;T&gt; GetPageByCriteria(<span class="built_in">int</span> pageIndex, <span class="built_in">int</span> pageSize, out <span class="built_in">int</span> total, Expression&lt;<span class="function"><span class="keyword">Func</span>&lt;<span class="title">T</span>, <span class="title">bool</span>&gt;&gt; <span class="title">where</span>, <span class="title">Expression</span>&lt;<span class="title">Func</span>&lt;<span class="title">T</span>, <span class="title">dynamic</span>&gt;&gt; <span class="title">selector</span>);</span></span><br><span class="line"></span><br><span class="line">    IList&lt;T&gt; GetPageByCriteria(IQueryable&lt;T&gt; query, <span class="built_in">int</span> pageIndex, <span class="built_in">int</span> pageSize, out <span class="built_in">int</span> total, Expression&lt;<span class="function"><span class="keyword">Func</span>&lt;<span class="title">T</span>, <span class="title">bool</span>&gt;&gt; <span class="title">where</span>);</span></span><br><span class="line">    IList&lt;T&gt; GetPageByCriteria(IQueryable&lt;T&gt; query, <span class="built_in">int</span> pageIndex, <span class="built_in">int</span> pageSize, out <span class="built_in">int</span> total, Expression&lt;<span class="function"><span class="keyword">Func</span>&lt;<span class="title">T</span>, <span class="title">bool</span>&gt;&gt; <span class="title">where</span>, <span class="title">Expression</span>&lt;<span class="title">Func</span>&lt;<span class="title">T</span>, <span class="title">dynamic</span>&gt;&gt; <span class="title">selector</span>);</span></span><br><span class="line">    <span class="preprocessor">#<span class="keyword">endregion</span></span></span><br><span class="line"></span><br><span class="line">    <span class="preprocessor">#<span class="keyword">region</span> 获取数量</span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">int</span> GetCount()<span class="comment">;</span></span><br><span class="line">    <span class="built_in">int</span> GetCountByCriteria(Expression&lt;<span class="function"><span class="keyword">Func</span>&lt;<span class="title">T</span>, <span class="title">bool</span>&gt;&gt; <span class="title">where</span>);</span></span><br><span class="line">    <span class="preprocessor">#<span class="keyword">endregion</span></span></span><br><span class="line"></span><br><span class="line">    <span class="preprocessor">#<span class="keyword">region</span> 根据主键获取对象</span></span><br><span class="line">    //获取单个对象</span><br><span class="line">    T GetByKey(object key)<span class="comment">;</span></span><br><span class="line">    <span class="preprocessor">#<span class="keyword">endregion</span></span></span><br><span class="line"></span><br><span class="line">    <span class="preprocessor">#<span class="keyword">region</span> 根据条件获取数据</span></span><br><span class="line">    IList&lt;T&gt; GetByCriteria(Expression&lt;<span class="function"><span class="keyword">Func</span>&lt;<span class="title">T</span>, <span class="title">bool</span>&gt;&gt; <span class="title">where</span>);</span></span><br><span class="line">    IList&lt;T&gt; GetByCriteria(Expression&lt;<span class="function"><span class="keyword">Func</span>&lt;<span class="title">T</span>, <span class="title">bool</span>&gt;&gt; <span class="title">where</span>, <span class="title">Expression</span>&lt;<span class="title">Func</span>&lt;<span class="title">T</span>, <span class="title">dynamic</span>&gt;&gt; <span class="title">selector</span>);</span></span><br><span class="line"></span><br><span class="line">    IList&lt;T&gt; GetByCriteria(IQueryable&lt;T&gt; query, Expression&lt;<span class="function"><span class="keyword">Func</span>&lt;<span class="title">T</span>, <span class="title">bool</span>&gt;&gt; <span class="title">where</span>);</span></span><br><span class="line">    IList&lt;T&gt; GetByCriteria(IQueryable&lt;T&gt; query, Expression&lt;<span class="function"><span class="keyword">Func</span>&lt;<span class="title">T</span>, <span class="title">bool</span>&gt;&gt; <span class="title">where</span>, <span class="title">Expression</span>&lt;<span class="title">Func</span>&lt;<span class="title">T</span>, <span class="title">dynamic</span>&gt;&gt; <span class="title">selector</span>);</span></span><br><span class="line">    <span class="preprocessor">#<span class="keyword">endregion</span></span></span><br><span class="line"></span><br><span class="line">    <span class="preprocessor">#<span class="keyword">region</span> 自定义查询</span></span><br><span class="line">    /// &lt;summary&gt;</span><br><span class="line">    /// 执行SQL语句，返回受影响行数</span><br><span class="line">    /// &lt;/summary&gt;</span><br><span class="line">    /// &lt;param name=<span class="string">"sqlCommand"</span>&gt;sql语句&lt;/param&gt;</span><br><span class="line">    /// &lt;param name=<span class="string">"parameters"</span>&gt;可选参数&lt;/param&gt;</span><br><span class="line">    /// &lt;returns&gt;受影响行数&lt;/returns&gt;</span><br><span class="line">    <span class="built_in">int</span> ExecuteSqlCommand(<span class="built_in">string</span> sqlCommand, params object[] parameters)<span class="comment">;</span></span><br><span class="line">    /// &lt;summary&gt;</span><br><span class="line">    /// 执行SQL语句，返回查询结果</span><br><span class="line">    /// &lt;/summary&gt;</span><br><span class="line">    /// &lt;param name=<span class="string">"sqlCommand"</span>&gt;sql语句&lt;/param&gt;</span><br><span class="line">    /// &lt;param name=<span class="string">"parameters"</span>&gt;可选参数&lt;/param&gt;</span><br><span class="line">    /// &lt;returns&gt;查询结果内存表&lt;/returns&gt;</span><br><span class="line">    DataTable SqlQuery(<span class="built_in">string</span> sqlCommand, params object[] parameters)<span class="comment">;</span></span><br><span class="line">    <span class="preprocessor">#<span class="keyword">endregion</span></span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="组件接口">组件接口</h2><p>IDataContext接口：所有底层的数据访问层组件需要实现此接口，此接口与上面的数据映射器接口几乎一致，多了两个方法：<br>第一个：获取对象映射器的方法GetDataMapper()，在底层组件实现中会调用此方法获取相关类型的数据映射器对象已实现的接口，然后调用数据映射器接口的实现方法。<br>第二个：用于数据库优先模式下的模型检查的方法：DBFirstCheck()。<br>IDataContext接口代码只贴出多出的方法签名，其他就不贴出来了，和IDataMapper接口差不多的方法，可以在文章后面下载源码查看<br>cs<figure class="highlight lasso"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">  <span class="comment">/// &lt;summary&gt;</span></span><br><span class="line">  <span class="comment">/// 数据访问组件接口</span></span><br><span class="line">  <span class="comment">/// &lt;/summary&gt;</span></span><br><span class="line">  <span class="keyword">public</span> interface IDataContext : IDisposable</span><br><span class="line">  &#123;</span><br><span class="line">   <span class="comment">/// &lt;summary&gt;</span></span><br><span class="line">      <span class="comment">/// 用于数据库优先模式下的模型检查</span></span><br><span class="line">      <span class="comment">/// &lt;/summary&gt;</span></span><br><span class="line">      <span class="literal">void</span> DBFirstCheck();</span><br><span class="line"></span><br><span class="line">      <span class="comment">/// &lt;summary&gt;</span></span><br><span class="line">      <span class="comment">/// 获取T对象的数据映射器实例</span></span><br><span class="line">      <span class="comment">/// &lt;/summary&gt;</span></span><br><span class="line">      IDataMapper&lt;T&gt; GetDataMapper&lt;T&gt;() <span class="keyword">where</span> T : class, <span class="literal">new</span>();</span><br><span class="line"></span><br><span class="line"><span class="attribute">...</span><span class="attribute">...</span><span class="attribute">...</span><span class="attribute">...</span><span class="attribute">...</span><span class="built_in">.</span><br><span class="line">  </span>&#125;</span><br></pre></td></tr></table></figure></p>
+<h1 id="数据访问基类">数据访问基类</h1><p>创建一个抽象基类BaseDataContext并实现IDataContext接口，在基类中实现了将IDataContext接口的方法与IDataMapper接口的方法对应起来，将获取数据映射器的方法GetDataMapper定义为抽象的方法。<br>其实也可以在底层的数据访问组件直接实现IDataContext接口，但是创建一个基类可以减少底层组件的代码量，在数据访问组件中，直接继承BaseDataContext基类，并重写获取数据映射器的方法GetDataMapper即可。<br>抽象基类BaseDataContext代码：<br>cs<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">  <span class="comment">/// &lt;summary&gt;</span></span><br><span class="line">  <span class="comment">/// 数据访问层组件基类 </span></span><br><span class="line">  <span class="comment">/// &lt;/summary&gt;</span></span><br><span class="line">  <span class="keyword">public</span> abstract <span class="class"><span class="keyword">class</span> <span class="title">BaseDataContext</span> : <span class="typename">IDataContext</span></span></span><br><span class="line">  &#123;</span><br><span class="line"><span class="comment">//用于数据库优先模式下的模型检查</span></span><br><span class="line">      <span class="keyword">public</span> abstract void DBFirstCheck();</span><br><span class="line"></span><br><span class="line">      <span class="comment">//定义返回数据映射器的方法签名</span></span><br><span class="line">      <span class="keyword">public</span> abstract IDataMapper<span class="type">&lt;T&gt;</span> GetDataMapper<span class="type">&lt;T&gt;</span>() where T : <span class="class"><span class="keyword">class</span>,<span class="typename">new</span></span>();</span><br><span class="line"></span><br><span class="line">      <span class="keyword">public</span> IQueryable<span class="type">&lt;T&gt;</span> GetQueryable<span class="type">&lt;T&gt;</span>() where T : <span class="class"><span class="keyword">class</span>, <span class="typename">new</span></span>()</span><br><span class="line">      &#123;</span><br><span class="line">          <span class="keyword">return</span> GetDataMapper<span class="type">&lt;T&gt;</span>().GetQueryable();</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">public</span> IList<span class="type">&lt;T&gt;</span> GetAll<span class="type">&lt;T&gt;</span>() where T : <span class="class"><span class="keyword">class</span>, <span class="typename">new</span></span>()</span><br><span class="line">      &#123;</span><br><span class="line">          <span class="keyword">return</span> GetDataMapper<span class="type">&lt;T&gt;</span>().GetAll();</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">..............这里就不贴出全部代码了，有兴趣下载后面的示例代码查看。</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure></p>
+<h1 id="下一节">下一节</h1><p>本章把仓储层介绍完了，下一节介绍如何使用插件模式实现数据访问层的组件开发。<br>源码可以点击 <a href="http://pan.baidu.com/s/1i3ZwE5v" target="_blank" rel="external">这里下载</a></p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/DotNet技术/">DotNet技术</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/EF/">EF</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="http://www.knna.me/2015/10/21/使用ORM框架(EF6)基于插件模式封装数据访问层（一）从仓储层开始/" data-title="使用ORM框架(EF6)基于插件模式封装数据访问层（一）从仓储层开始 | KNNA-个人博客" data-tsina="1661199722" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2015/10/21/使用ORM框架(EF6)基于插件模式封装数据访问层（二）数据访问组件/" title="使用ORM框架(EF6)基于插件模式封装数据访问层（二）数据访问组件">
+  <strong>上一篇：</strong><br/>
+  <span>
+  使用ORM框架(EF6)基于插件模式封装数据访问层（二）数据访问组件</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2015/10/11/IOCP完成端口实例（二）/"  title="IOCP完成端口实例（二）">
+ <strong>下一篇：</strong><br/> 
+ <span>IOCP完成端口实例（二）
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2015/10/21/使用ORM框架(EF6)基于插件模式封装数据访问层（一）从仓储层开始/" data-title="使用ORM框架(EF6)基于插件模式封装数据访问层（一）从仓储层开始" data-url="http://www.knna.me/2015/10/21/使用ORM框架(EF6)基于插件模式封装数据访问层（一）从仓储层开始/"></div>
+</section>
+
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#O/RM框架介绍"><span class="toc-number">1.</span> <span class="toc-text">O/RM框架介绍</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#插件模式介绍"><span class="toc-number">2.</span> <span class="toc-text">插件模式介绍</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#仓储模式介绍"><span class="toc-number">3.</span> <span class="toc-text">仓储模式介绍</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#创建项目"><span class="toc-number">4.</span> <span class="toc-text">创建项目</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#项目结构"><span class="toc-number">4.1.</span> <span class="toc-text">项目结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#插件安装"><span class="toc-number">4.2.</span> <span class="toc-text">插件安装</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#仓储层"><span class="toc-number">5.</span> <span class="toc-text">仓储层</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#数据映射器接口"><span class="toc-number">5.1.</span> <span class="toc-text">数据映射器接口</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#组件接口"><span class="toc-number">5.2.</span> <span class="toc-text">组件接口</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#数据访问基类"><span class="toc-number">6.</span> <span class="toc-text">数据访问基类</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#下一节"><span class="toc-number">7.</span> <span class="toc-text">下一节</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/DotNet技术/" title="DotNet技术">DotNet技术<sup>13</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/IOCP高并发框架/" title="IOCP高并发框架">IOCP高并发框架<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ISO8583/" title="ISO8583">ISO8583<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Oracle/" title="Oracle">Oracle<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/PowerDesigner/" title="PowerDesigner">PowerDesigner<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客搭建/" title="博客搭建">博客搭建<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/虚拟机/" title="虚拟机">虚拟机<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/阅读/" title="阅读">阅读<sup>2</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/Oracle/" title="Oracle">Oracle<sup>11</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/PLSQL/" title="PLSQL">PLSQL<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/WPF/" title="WPF">WPF<sup>5</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/EF/" title="EF">EF<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Oracle虚拟机/" title="Oracle虚拟机">Oracle虚拟机<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ISO8583/" title="ISO8583">ISO8583<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/IOCP/" title="IOCP">IOCP<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/模板/" title="模板">模板<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/自定义控件/" title="自定义控件">自定义控件<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Socket/" title="Socket">Socket<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Mahapps-Metro/" title="Mahapps.Metro">Mahapps.Metro<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/MVVM/" title="MVVM">MVVM<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/PowerDesigner/" title="PowerDesigner">PowerDesigner<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/领域驱动设计/" title="领域驱动设计">领域驱动设计<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/人生就是一场突如其来的旅行/" title="人生就是一场突如其来的旅行">人生就是一场突如其来的旅行<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Oracle问题/" title="Oracle问题">Oracle问题<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/反射/" title="反射">反射<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/GitHub/" title="GitHub">GitHub<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Log4net/" title="Log4net">Log4net<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="http://www.knna.me" target="_blank" title="欢迎互换外链">欢迎互换外链</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.wxzzz.com" target="_blank" title="王旭博客">王旭博客</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+  <div class="weiboshow">
+  <p class="asidetitle">新浪微博</p>
+    <iframe width="100%" height="300" class="share_self"  frameborder="0" scrolling="no" src="http://widget.weibo.com/weiboshow/index.php?language=&width=0&height=300&fansRow=2&ptype=1&speed=0&skin=1&isTitle=1&noborder=1&isWeibo=1&isFans=1&uid=1661199722&verifier=3b01a22b&dpc=1"></iframe>
+</div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<section class="info">
+		<p> 	今天拥有的东西，可能恰恰是阻碍你前行的包袱，  <br/>
+			放下包袱，不是失去，而是一次新的开始！</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		<a href="http://weibo.com/1661199722" target="_blank" class="icon-weibo" title="微博"></a>
+		
+		
+		<a href="https://github.com/knna" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		<a href="https://twitter.com/knnapan" target="_blank" class="icon-twitter" title="twitter"></a>
+		
+		
+		
+		
+		
+		
+		
+	</div>
+			
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2015 
+		
+		<a href="/about" target="_blank" title="KNNA">KNNA</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<div class="hoverqrcode clearfix"></div>',
+  '<a class="overlay" id="qrcode"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+
+  $('.hoverqrcode').hide();
+
+  var myWidth = 0;
+  function updatehoverqrcode(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+    var qrsize = myWidth > 1024 ? 200:100;
+    var options = {render: 'image', size: qrsize, fill: '#2ca6cb', text: url, radius: 0.5, quiet: 1};
+    var p = $('.article-share-qrcode').position();
+    $('.hoverqrcode').empty().css('width', qrsize).css('height', qrsize)
+                          .css('left', p.left-qrsize/2+20).css('top', p.top-qrsize-10)
+                          .qrcode(options);
+  };
+  $(window).resize(function(){
+    $('.hoverqrcode').hide();
+  });
+  $('.article-share-qrcode').click(function(){
+    updatehoverqrcode();
+    $('.hoverqrcode').toggle();
+  });
+  $('.article-share-qrcode').hover(function(){}, function(){
+      $('.hoverqrcode').hide();
+  });
+});   
+</script>
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"KNNA"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F28572b2f7a37d925fcb70c7147b2cac9' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="返回顶部"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<script>
+var option = {
+  engineKey: '4fcfbbd7e56708fd8651'
+};
+(function(w,d,t,u,n,s,e){
+  s = d.createElement(t);
+  s.src = u;
+  s.async = 1;
+  w[n] = function(r){
+    w[n].opts = r;
+  };
+  e = d.getElementsByTagName(t)[0];
+  e.parentNode.insertBefore(s, e);
+})(window,document,'script','//tinysou-cdn.b0.upaiyun.com/ts.js','_ts');
+_ts(option);
+</script>
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

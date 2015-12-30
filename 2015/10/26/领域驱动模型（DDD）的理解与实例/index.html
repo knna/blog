@@ -1,0 +1,627 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>领域驱动模型（DDD）的理解与实例 | KNNA-个人博客</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="KNNA">
+    
+
+    
+    <meta name="description" content="介绍领域驱动设计（全称：Domain Driven Design，简称：DDD）是我在《.NET 企业级应用架构设计》书中看到的设计理念。好像最近越来越火了，博客园上看到有人说欧美的国家不少软件公司已经普遍使用DDD进行软件开发。最近我在网上也看了不少领域驱动设计的博文，学习了一些东西，但大多都是偏向理论的东西讲解，很少有代码实例说明的，因此这篇文章我会在代码的基础上进行介绍。
+区别领域模型放在业">
+<meta property="og:type" content="article">
+<meta property="og:title" content="领域驱动模型（DDD）的理解与实例">
+<meta property="og:url" content="http://www.knna.me/2015/10/26/领域驱动模型（DDD）的理解与实例/index.html">
+<meta property="og:site_name" content="KNNA-个人博客">
+<meta property="og:description" content="介绍领域驱动设计（全称：Domain Driven Design，简称：DDD）是我在《.NET 企业级应用架构设计》书中看到的设计理念。好像最近越来越火了，博客园上看到有人说欧美的国家不少软件公司已经普遍使用DDD进行软件开发。最近我在网上也看了不少领域驱动设计的博文，学习了一些东西，但大多都是偏向理论的东西讲解，很少有代码实例说明的，因此这篇文章我会在代码的基础上进行介绍。
+区别领域模型放在业">
+<meta property="og:image" content="http://www.knna.me/images/public/11.jpg">
+<meta property="og:updated_time" content="2015-12-30T05:43:38.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="领域驱动模型（DDD）的理解与实例">
+<meta name="twitter:description" content="介绍领域驱动设计（全称：Domain Driven Design，简称：DDD）是我在《.NET 企业级应用架构设计》书中看到的设计理念。好像最近越来越火了，博客园上看到有人说欧美的国家不少软件公司已经普遍使用DDD进行软件开发。最近我在网上也看了不少领域驱动设计的博文，学习了一些东西，但大多都是偏向理论的东西讲解，很少有代码实例说明的，因此这篇文章我会在代码的基础上进行介绍。
+区别领域模型放在业">
+<meta name="twitter:creator" content="@knnapan">
+
+    
+    <link rel="alternative" href="/atom.xml" title="KNNA-个人博客" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+</head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.png" alt="KNNA-个人博客" title="KNNA-个人博客"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="KNNA-个人博客">KNNA-个人博客</a></h1>
+				<h2 class="blog-motto">.NET Developer</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">首页</a></li>
+					
+						<li><a href="/archives">文章</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+ 					
+						<form class="search">
+							<label>Search</label>
+						<input type="text" id="ts-search-input" name="q" size="30" placeholder="搜索"><br>
+						</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2015/10/26/领域驱动模型（DDD）的理解与实例/" title="领域驱动模型（DDD）的理解与实例" itemprop="url">领域驱动模型（DDD）的理解与实例</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="KNNA" target="_blank" itemprop="author">KNNA</a>
+		
+  <p class="article-time">
+    <time datetime="2015-10-26T04:48:58.000Z" itemprop="datePublished"> 发表于 2015-10-26</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		
+			<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#介绍"><span class="toc-number">1.</span> <span class="toc-text">介绍</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#区别"><span class="toc-number">1.1.</span> <span class="toc-text">区别</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#代码比较"><span class="toc-number">1.2.</span> <span class="toc-text">代码比较</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#领域理解"><span class="toc-number">2.</span> <span class="toc-text">领域理解</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#仓储层"><span class="toc-number">3.</span> <span class="toc-text">仓储层</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#服务层"><span class="toc-number">4.</span> <span class="toc-text">服务层</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#表现层"><span class="toc-number">5.</span> <span class="toc-text">表现层</span></a></li></ol>
+		
+		</div>
+		
+		<h1 id="介绍">介绍</h1><p>领域驱动设计（全称：Domain Driven Design，简称：DDD）是我在《.NET 企业级应用架构设计》书中看到的设计理念。好像最近越来越火了，博客园上看到有人说欧美的国家不少软件公司已经普遍使用DDD进行软件开发。<br>最近我在网上也看了不少领域驱动设计的博文，学习了一些东西，但大多都是偏向理论的东西讲解，很少有代码实例说明的，因此这篇文章我会在代码的基础上进行介绍。</p>
+<h2 id="区别">区别</h2><p>领域模型放在业务逻辑层中，因为它只实现了领域相关的业务。<br>现在很多开发人员是基于数据驱动的开发方式，也就是传统的多层开发架构，目前用的最多的。<br>而领域驱动设计不是基于数据驱动的开发方式，它可以说是基于需求（或者说业务）驱动的，它只关心每个领域对象中需要实现什么业务，与业务无关的，比如数据保存、查询这些，领域模型中一概不管。<br>所以领域驱动设计将开发人员区分开来，让业务开发人员不用触及底层数据库的相关代码，而数据库相关的开发人员也不用关心业务代码。<br>并且在领域驱动设计中，因为不关心底层数据库了，所以它可以更加轻松的开发业务和拓展业务。这是它的最大优势。<br>当然最大的优势也带来了最大的不足：在对领域模型进行数据持久化操作时是最难的，这时需要数据映射器将领域模型和数据库模型进行映射。</p>
+<h2 id="代码比较">代码比较</h2><p>在领域模型中设计业务是非常直观和容易的，打个比方，传统模式中，我们要实现一个功能：小明打球，可能是这样写的：<br>cs<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">UserService</span><span class="class">.Play</span>(<span class="tag">XiaoMing</span>,<span class="tag">basketball</span>);</span><br></pre></td></tr></table></figure></p>
+<p>而在领域驱动设计中，则是这样写的：<br>cs<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">XiaoMing</span><span class="class">.Play</span>(<span class="tag">basketball</span>);</span><br></pre></td></tr></table></figure></p>
+<p>可以看出领域驱动设计代码明显更加直接，更具有可读性。</p>
+<h1 id="领域理解">领域理解</h1><p>领域驱动设计：首先我们的关注点在领域，每个领域内聚的是领域相关的业务，比如我们上面的一个功能，用户打篮球，打篮球就是属于用户这个领域，再比如：吃饭，睡觉，上班等等都属于用户领域里面的，写了一个用户领域模型的代码来更直观理解一下。<br>cs<figure class="highlight cs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;summary&gt;</span></span></span><br><span class="line"><span class="comment"><span class="xmlDocTag">///</span> 用户领域模型类</span></span><br><span class="line"><span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;/summary&gt;</span></span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">User</span>:<span class="title">IEntity</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//编号</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">int</span> ID &#123; <span class="keyword">get</span>; <span class="keyword">set</span>; &#125;</span><br><span class="line">    <span class="comment">//姓名</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">string</span> Name &#123; <span class="keyword">get</span>; <span class="keyword">set</span>; &#125;</span><br><span class="line">    <span class="comment">//年龄</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">int</span> Age &#123; <span class="keyword">get</span>; <span class="keyword">set</span>; &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;summary&gt;</span></span></span><br><span class="line">    <span class="comment"><span class="xmlDocTag">///</span> 用户打球</span></span><br><span class="line">    <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;/summary&gt;</span></span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">string</span> <span class="title">PlayBall</span>(<span class="params"></span>)</span><br><span class="line">    </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> Name + <span class="string">"在打球-下午7点"</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;summary&gt;</span></span></span><br><span class="line">    <span class="comment"><span class="xmlDocTag">///</span> 吃饭</span></span><br><span class="line">    <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;/summary&gt;</span></span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">string</span> <span class="title">Eat</span>(<span class="params"></span>)</span><br><span class="line">    </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> Name + <span class="string">"在吃饭-早上8点"</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;summary&gt;</span></span></span><br><span class="line">    <span class="comment"><span class="xmlDocTag">///</span> 睡觉</span></span><br><span class="line">    <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;/summary&gt;</span></span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">string</span> <span class="title">Sleep</span>(<span class="params"></span>)</span><br><span class="line">    </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> Name + <span class="string">"在睡觉-晚上10点"</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;summary&gt;</span></span></span><br><span class="line">    <span class="comment"><span class="xmlDocTag">///</span> 工作</span></span><br><span class="line">    <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;/summary&gt;</span></span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">string</span> <span class="title">Work</span>(<span class="params"></span>)</span><br><span class="line">    </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> Name + <span class="string">"在工作-上午9点"</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h1 id="仓储层">仓储层</h1><p>如果领域驱动设计中没有数据持久化操作，那谁来完成这个任务呢？对了，就是仓储层。<br>记得在前面介绍EF相关文章中提过仓储模式，领域驱动设计一般都配合仓储模式搭建框架。在领域模型中是不包含任何数据持久化代码的，而数据的持久化操作就交给仓储层来完成了，他为每个领域模型创建了对应的数据映射器，可以为每一个领域模型进行持久化操作。如果没有看过前面EF相关文章的话，建议读一下，本文示例中的仓储层就是基于EF文中的示例，并进行了适当修改。</p>
+<h1 id="服务层">服务层</h1><p>在领域驱动设计中，我们为每一个领域（比如用户，订单，商品…）都定义了对应的领域模型，在各自的领域模型中，实现了自身领域相关的细粒度业务方法。当然这些方法还不能提供给表现层直接调用。这就需要服务层来进行协调了，比如我们表现层有一个需求（用例）：获取用户一天的时间安排，这时表现层不会直接一个个调用用户领域领域模型中的吃饭，上班，打球，睡觉这些接口，而是利用服务层进行协调来向表现层提供一个粗粒度的用例接口，在用例接口中组合领域模型的细粒度业务。<br>比如以下服务层代码：<br>cs<figure class="highlight cs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;summary&gt;</span></span></span><br><span class="line"><span class="comment"><span class="xmlDocTag">///</span> 用户服务类</span></span><br><span class="line"><span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;/summary&gt;</span></span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">UserServices</span>:<span class="title">BaseServices</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;summary&gt;</span></span></span><br><span class="line">    <span class="comment"><span class="xmlDocTag">///</span> 获取一天的安排</span></span><br><span class="line">    <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;/summary&gt;</span></span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">string</span> <span class="title">GetOneDay</span>(<span class="params">User user</span>)</span><br><span class="line">    </span>&#123;</span><br><span class="line">        StringBuilder sb = <span class="keyword">new</span> StringBuilder();</span><br><span class="line">        <span class="comment">//开始吃饭</span></span><br><span class="line">        <span class="keyword">string</span> msg = user.Eat();</span><br><span class="line">        sb.Append(msg);</span><br><span class="line">        sb.Append(<span class="string">"\r\n"</span>);</span><br><span class="line">        <span class="comment">//开始工作</span></span><br><span class="line">        msg = user.Work();</span><br><span class="line">        sb.Append(msg);</span><br><span class="line">        sb.Append(<span class="string">"\r\n"</span>);</span><br><span class="line">        <span class="comment">//开始打球</span></span><br><span class="line">        msg = user.PlayBall();</span><br><span class="line">        sb.Append(msg);</span><br><span class="line">        sb.Append(<span class="string">"\r\n"</span>);</span><br><span class="line">        <span class="comment">//开始睡觉</span></span><br><span class="line">        msg = user.Sleep();</span><br><span class="line">        sb.Append(msg);</span><br><span class="line">        sb.Append(<span class="string">"\r\n"</span>);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">//一天结束</span></span><br><span class="line">        <span class="keyword">return</span> sb.ToString();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h1 id="表现层">表现层</h1><p>在服务层中已经为表现层每个用例提供了相应的接口，直接调用即可。代码如下：<br>cs<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> Program</span><br><span class="line">&#123;</span><br><span class="line">    <span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">Main</span><span class="params">(<span class="built_in">string</span>[] args)</span></span><br><span class="line">    </span>&#123;</span><br><span class="line">        <span class="comment">//调用服务层的用例接口</span></span><br><span class="line">        User xiaoMing = <span class="keyword">new</span> User();</span><br><span class="line">        xiaoMing.Age = <span class="number">25</span>;</span><br><span class="line">        xiaoMing.ID = <span class="number">1</span>;</span><br><span class="line">        xiaoMing.Name = <span class="string">"小明"</span>;</span><br><span class="line">        UserServices xiaomingSvc = <span class="keyword">new</span> UserServices();</span><br><span class="line">        <span class="built_in">string</span> oneDay = xiaomingSvc.GetOneDay(xiaoMing);</span><br><span class="line">        Console.WriteLine(oneDay);</span><br><span class="line">        Console.ReadLine();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>显示结果：<br><img src="/images/public/11.jpg" alt="images"></p>
+<p>这里就不调用仓储层进行持久化操作了，有关仓储层的操作和配置，可以看EF相关的文章。<br>领域模型我理解的不深入，不足之处，希望指正。<br>本文章示例代码 <a href="http://pan.baidu.com/s/1eQSbrou" target="_blank" rel="external">点击下载</a></p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/DotNet技术/">DotNet技术</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/领域驱动设计/">领域驱动设计</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="http://www.knna.me/2015/10/26/领域驱动模型（DDD）的理解与实例/" data-title="领域驱动模型（DDD）的理解与实例 | KNNA-个人博客" data-tsina="1661199722" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2015/11/02/WPF中的转换器使用详解/" title="WPF中的转换器使用详解">
+  <strong>上一篇：</strong><br/>
+  <span>
+  WPF中的转换器使用详解</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2015/10/22/使用ORM框架(EF6)基于插件模式封装数据访问层（四）组件配置与切换/"  title="使用ORM框架(EF6)基于插件模式封装数据访问层（四）组件配置与切换">
+ <strong>下一篇：</strong><br/> 
+ <span>使用ORM框架(EF6)基于插件模式封装数据访问层（四）组件配置与切换
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2015/10/26/领域驱动模型（DDD）的理解与实例/" data-title="领域驱动模型（DDD）的理解与实例" data-url="http://www.knna.me/2015/10/26/领域驱动模型（DDD）的理解与实例/"></div>
+</section>
+
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#介绍"><span class="toc-number">1.</span> <span class="toc-text">介绍</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#区别"><span class="toc-number">1.1.</span> <span class="toc-text">区别</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#代码比较"><span class="toc-number">1.2.</span> <span class="toc-text">代码比较</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#领域理解"><span class="toc-number">2.</span> <span class="toc-text">领域理解</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#仓储层"><span class="toc-number">3.</span> <span class="toc-text">仓储层</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#服务层"><span class="toc-number">4.</span> <span class="toc-text">服务层</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#表现层"><span class="toc-number">5.</span> <span class="toc-text">表现层</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/DotNet技术/" title="DotNet技术">DotNet技术<sup>13</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/IOCP高并发框架/" title="IOCP高并发框架">IOCP高并发框架<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ISO8583/" title="ISO8583">ISO8583<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Oracle/" title="Oracle">Oracle<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/PowerDesigner/" title="PowerDesigner">PowerDesigner<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客搭建/" title="博客搭建">博客搭建<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/虚拟机/" title="虚拟机">虚拟机<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/阅读/" title="阅读">阅读<sup>2</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/Oracle/" title="Oracle">Oracle<sup>11</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/PLSQL/" title="PLSQL">PLSQL<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/WPF/" title="WPF">WPF<sup>5</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/EF/" title="EF">EF<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Oracle虚拟机/" title="Oracle虚拟机">Oracle虚拟机<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ISO8583/" title="ISO8583">ISO8583<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/IOCP/" title="IOCP">IOCP<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/模板/" title="模板">模板<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/自定义控件/" title="自定义控件">自定义控件<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Socket/" title="Socket">Socket<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Mahapps-Metro/" title="Mahapps.Metro">Mahapps.Metro<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/MVVM/" title="MVVM">MVVM<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/PowerDesigner/" title="PowerDesigner">PowerDesigner<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/领域驱动设计/" title="领域驱动设计">领域驱动设计<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/人生就是一场突如其来的旅行/" title="人生就是一场突如其来的旅行">人生就是一场突如其来的旅行<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Oracle问题/" title="Oracle问题">Oracle问题<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/反射/" title="反射">反射<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/GitHub/" title="GitHub">GitHub<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Log4net/" title="Log4net">Log4net<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="http://www.knna.me" target="_blank" title="欢迎互换外链">欢迎互换外链</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.wxzzz.com" target="_blank" title="王旭博客">王旭博客</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+  <div class="weiboshow">
+  <p class="asidetitle">新浪微博</p>
+    <iframe width="100%" height="300" class="share_self"  frameborder="0" scrolling="no" src="http://widget.weibo.com/weiboshow/index.php?language=&width=0&height=300&fansRow=2&ptype=1&speed=0&skin=1&isTitle=1&noborder=1&isWeibo=1&isFans=1&uid=1661199722&verifier=3b01a22b&dpc=1"></iframe>
+</div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<section class="info">
+		<p> 	今天拥有的东西，可能恰恰是阻碍你前行的包袱，  <br/>
+			放下包袱，不是失去，而是一次新的开始！</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		<a href="http://weibo.com/1661199722" target="_blank" class="icon-weibo" title="微博"></a>
+		
+		
+		<a href="https://github.com/knna" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		<a href="https://twitter.com/knnapan" target="_blank" class="icon-twitter" title="twitter"></a>
+		
+		
+		
+		
+		
+		
+		
+	</div>
+			
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2015 
+		
+		<a href="/about" target="_blank" title="KNNA">KNNA</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<div class="hoverqrcode clearfix"></div>',
+  '<a class="overlay" id="qrcode"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+
+  $('.hoverqrcode').hide();
+
+  var myWidth = 0;
+  function updatehoverqrcode(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+    var qrsize = myWidth > 1024 ? 200:100;
+    var options = {render: 'image', size: qrsize, fill: '#2ca6cb', text: url, radius: 0.5, quiet: 1};
+    var p = $('.article-share-qrcode').position();
+    $('.hoverqrcode').empty().css('width', qrsize).css('height', qrsize)
+                          .css('left', p.left-qrsize/2+20).css('top', p.top-qrsize-10)
+                          .qrcode(options);
+  };
+  $(window).resize(function(){
+    $('.hoverqrcode').hide();
+  });
+  $('.article-share-qrcode').click(function(){
+    updatehoverqrcode();
+    $('.hoverqrcode').toggle();
+  });
+  $('.article-share-qrcode').hover(function(){}, function(){
+      $('.hoverqrcode').hide();
+  });
+});   
+</script>
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"KNNA"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F28572b2f7a37d925fcb70c7147b2cac9' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="返回顶部"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<script>
+var option = {
+  engineKey: '4fcfbbd7e56708fd8651'
+};
+(function(w,d,t,u,n,s,e){
+  s = d.createElement(t);
+  s.src = u;
+  s.async = 1;
+  w[n] = function(r){
+    w[n].opts = r;
+  };
+  e = d.getElementsByTagName(t)[0];
+  e.parentNode.insertBefore(s, e);
+})(window,document,'script','//tinysou-cdn.b0.upaiyun.com/ts.js','_ts');
+_ts(option);
+</script>
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

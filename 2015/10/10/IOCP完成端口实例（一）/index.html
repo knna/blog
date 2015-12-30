@@ -1,0 +1,642 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>IOCP完成端口实例（一） | KNNA-个人博客</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="KNNA">
+    
+
+    
+    <meta name="description" content="IOCP框架IOCP完成端口我想大家知道的，一个非常有名的高并发处理框架，CLR的线程池也是用IOCP框架编写的。恰好今年公司项目需要开发一套高并发通讯框架，最后选择用IOCP完成端口来做。    现在项目已经上线运行一段时间，这几天准备把框架部分一些实现写出来记录一下，文章中的所有代码为后期根据文章需要重写的，实际项目流程和文章实例代码的流程有所不同，多了几个处理流程，并在重写代码中新增了很多注">
+<meta property="og:type" content="article">
+<meta property="og:title" content="IOCP完成端口实例（一）">
+<meta property="og:url" content="http://www.knna.me/2015/10/10/IOCP完成端口实例（一）/index.html">
+<meta property="og:site_name" content="KNNA-个人博客">
+<meta property="og:description" content="IOCP框架IOCP完成端口我想大家知道的，一个非常有名的高并发处理框架，CLR的线程池也是用IOCP框架编写的。恰好今年公司项目需要开发一套高并发通讯框架，最后选择用IOCP完成端口来做。    现在项目已经上线运行一段时间，这几天准备把框架部分一些实现写出来记录一下，文章中的所有代码为后期根据文章需要重写的，实际项目流程和文章实例代码的流程有所不同，多了几个处理流程，并在重写代码中新增了很多注">
+<meta property="og:image" content="http://www.knna.me/images/iocp/1.jpg">
+<meta property="og:updated_time" content="2015-12-30T05:45:06.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="IOCP完成端口实例（一）">
+<meta name="twitter:description" content="IOCP框架IOCP完成端口我想大家知道的，一个非常有名的高并发处理框架，CLR的线程池也是用IOCP框架编写的。恰好今年公司项目需要开发一套高并发通讯框架，最后选择用IOCP完成端口来做。    现在项目已经上线运行一段时间，这几天准备把框架部分一些实现写出来记录一下，文章中的所有代码为后期根据文章需要重写的，实际项目流程和文章实例代码的流程有所不同，多了几个处理流程，并在重写代码中新增了很多注">
+<meta name="twitter:creator" content="@knnapan">
+
+    
+    <link rel="alternative" href="/atom.xml" title="KNNA-个人博客" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+</head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.png" alt="KNNA-个人博客" title="KNNA-个人博客"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="KNNA-个人博客">KNNA-个人博客</a></h1>
+				<h2 class="blog-motto">.NET Developer</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">首页</a></li>
+					
+						<li><a href="/archives">文章</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+ 					
+						<form class="search">
+							<label>Search</label>
+						<input type="text" id="ts-search-input" name="q" size="30" placeholder="搜索"><br>
+						</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2015/10/10/IOCP完成端口实例（一）/" title="IOCP完成端口实例（一）" itemprop="url">IOCP完成端口实例（一）</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="KNNA" target="_blank" itemprop="author">KNNA</a>
+		
+  <p class="article-time">
+    <time datetime="2015-10-10T06:52:56.000Z" itemprop="datePublished"> 发表于 2015-10-10</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		
+			<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#IOCP框架"><span class="toc-number">1.</span> <span class="toc-text">IOCP框架</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#工作流程"><span class="toc-number">2.</span> <span class="toc-text">工作流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#功能模块"><span class="toc-number">3.</span> <span class="toc-text">功能模块</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#数据池"><span class="toc-number">4.</span> <span class="toc-text">数据池</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#空闲数据池"><span class="toc-number">4.1.</span> <span class="toc-text">空闲数据池</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#无序数据池"><span class="toc-number">4.2.</span> <span class="toc-text">无序数据池</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#待处理业务数据池"><span class="toc-number">4.3.</span> <span class="toc-text">待处理业务数据池</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#内存管理器"><span class="toc-number">5.</span> <span class="toc-text">内存管理器</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#数据收发缓存包"><span class="toc-number">6.</span> <span class="toc-text">数据收发缓存包</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#工作线程"><span class="toc-number">7.</span> <span class="toc-text">工作线程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#超时检测"><span class="toc-number">8.</span> <span class="toc-text">超时检测</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#日志记录"><span class="toc-number">9.</span> <span class="toc-text">日志记录</span></a></li></ol>
+		
+		</div>
+		
+		<h2 id="IOCP框架">IOCP框架</h2><p>IOCP完成端口我想大家知道的，一个非常有名的高并发处理框架，CLR的线程池也是用IOCP框架编写的。<br>恰好今年公司项目需要开发一套高并发通讯框架，最后选择用IOCP完成端口来做。<br>    现在项目已经上线运行一段时间，这几天准备把框架部分一些实现写出来记录一下，文章中的所有代码<br>为后期根据文章需要重写的，实际项目流程和文章实例代码的流程有所不同，多了几个处理流程，并在重写代码中新增了很多注释。</p>
+<h2 id="工作流程">工作流程</h2><p>画了一个大致的工作流程图：<br><img src="/images/iocp/1.jpg" alt="image"><br>代码功能与处理流程将按照此图进行处理。</p>
+<h2 id="功能模块">功能模块</h2><p>在IOCP框架中大致划分了几个功能模块：</p>
+<blockquote>
+<ul>
+<li>数据池：保存各种数据对象的集合</li>
+<li>内存管理：为缓存对象中的数据进行统一管理，避免运行时的大量内存读写操作</li>
+<li>收发缓存：每个客户端都有接收缓存、发送缓存，用来处理粘包、分包。</li>
+<li>工作线程：从业务列队依次取出数据进行处理。</li>
+<li>超时检测：分别检测了接收超时和客户端生存周期超时。</li>
+<li>日志记录：输出提示信息、警告、错误等日志</li>
+<li>IOCP框架核心功能</li>
+</ul>
+</blockquote>
+<h2 id="数据池">数据池</h2><p>数据池一共有三种类型，分别运行在不同的场景。</p>
+<h3 id="空闲数据池">空闲数据池</h3><p>主要存放初始化时创建好的未使用数据，包括空闲的用户对象，空闲的套接字对象，空闲的业务对象。<br>数据池采用Stack列队承载，Stack的特点是后进先出，性能非常好。代码如下。<br>列队接口代码：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">public interface IQueue&lt;T&gt; where T : class</span><br><span class="line">    &#123;</span><br><span class="line">        int Count &#123; get; &#125;</span><br><span class="line"></span><br><span class="line">        T Pop();</span><br><span class="line"></span><br><span class="line">        void Push(T item);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>列队实现代码:<br><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line">public class StackPool&lt;T&gt; : IQueue&lt;T&gt; where T : class</span><br><span class="line">    &#123;</span><br><span class="line">        private readonly object _lockObj = new object();</span><br><span class="line">        private Stack&lt;T&gt; _pool;</span><br><span class="line">        private T item;</span><br><span class="line">        private T[] items;</span><br><span class="line"></span><br><span class="line">        public StackPool(int capacity)</span><br><span class="line">        &#123;</span><br><span class="line">            _pool = new Stack&lt;T&gt;(capacity);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        public int Count</span><br><span class="line">        &#123;</span><br><span class="line">            get &#123; return _pool.Count; &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        public T Pop()</span><br><span class="line">        &#123;</span><br><span class="line">            Monitor.Enter(_lockObj);</span><br><span class="line">            item = _pool.Count &gt; 0 ? _pool.Pop() : null;</span><br><span class="line">            Monitor.Exit(_lockObj);</span><br><span class="line">            return item;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        public void Push(T item)</span><br><span class="line">        &#123;</span><br><span class="line">            if (item == null)</span><br><span class="line">            &#123;</span><br><span class="line">                throw new ArgumentNullException("item不能为null ");</span><br><span class="line">            &#125;</span><br><span class="line">            Monitor.Enter(_lockObj);</span><br><span class="line">            _pool.Push(item);</span><br><span class="line">            Monitor.Exit(_lockObj);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        public T[] ToArray()</span><br><span class="line">        &#123;</span><br><span class="line">            Monitor.Enter(_lockObj);</span><br><span class="line">            items = _pool.ToArray();</span><br><span class="line">            Monitor.Exit(_lockObj);</span><br><span class="line">            return items;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure></p>
+<p>我想特别说下代码中的两个点：<br>1、尽量避免在大量调用的方法中使用lock语句来处理线程安全问题，微软提供的这个语法糖有时候真的害人不浅，lock在编译后的代码大致是这样的：<br><figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">bool</span> locked = <span class="keyword">false</span>;</span><br><span class="line"><span class="keyword">try</span></span><br><span class="line">&#123;</span><br><span class="line">    Monitor.Enter(_lockObj,<span class="keyword">ref</span> locked);</span><br><span class="line"><span class="comment">//你的代码</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">finally</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span> (locked) Monitor.Exit(_lockObj);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>代码被try起来以后，是有性能损失的，在高并发项目代码中，任何一行的代码我们都该慎重。</p>
+<p>2、锁定的时候尽量用私有对象来进行锁定，比如new一个object对象。否则可能出现：<br>锁定一个公开对象，独占执行此公开对象的某个锁定方法，导致死锁。</p>
+<h3 id="无序数据池">无序数据池</h3><p>用于保存已连接的客户端对象和正在接受数据的客户端对象，内部使用一个HashSet<t>泛型散列集合承载，主要提供入列、移除功能，经测试速度略慢于stack类型，但是也算比较高效的。<br>实现代码：<br><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line">/// &lt;summary&gt;</span><br><span class="line">/// 无序唯一值数据池</span><br><span class="line">/// &lt;/summary&gt;</span><br><span class="line">/// &lt;typeparam name="T"&gt;&lt;/typeparam&gt;</span><br><span class="line">public class DataPool&lt;T&gt; where T : class</span><br><span class="line">&#123;</span><br><span class="line">    private readonly object _lockObj = new object();</span><br><span class="line">    private HashSet&lt;T&gt; _hashset;</span><br><span class="line">    private T[] items;</span><br><span class="line"></span><br><span class="line">    public DataPool()</span><br><span class="line">    &#123;</span><br><span class="line">        _hashset = new HashSet&lt;T&gt;();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void Remove(T item)</span><br><span class="line">    &#123;</span><br><span class="line">        Monitor.Enter(_lockObj);</span><br><span class="line">        _hashset.Remove(item);</span><br><span class="line">        Monitor.Exit(_lockObj);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public int Count</span><br><span class="line">    &#123;</span><br><span class="line">        get &#123; return _hashset.Count; &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void Push(T item)</span><br><span class="line">    &#123;</span><br><span class="line">        Monitor.Enter(_lockObj);</span><br><span class="line">        if (_hashset.Contains(item))</span><br><span class="line">            throw new Exception("准备入列的item已经在列队中");</span><br><span class="line">        _hashset.Add(item);</span><br><span class="line">        Monitor.Exit(_lockObj);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public T[] ToArray()</span><br><span class="line">    &#123;</span><br><span class="line">        Monitor.Enter(_lockObj);</span><br><span class="line">        items = _hashset.ToArray();</span><br><span class="line">        Monitor.Exit(_lockObj);</span><br><span class="line">        return items;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></t></p>
+<h3 id="待处理业务数据池">待处理业务数据池</h3><p>用于存放待处理的业务项，接收线程放入数据，工作线程取出数据并处理，属于生产者-消费者模式，可以用微软的BlockingCollection集合实现，名字可以看出是个阻塞列队，此集合是线程安全的，所以我们不用做线程同步处理了，是不是很方便呢，代码如下：<br><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line">/// &lt;summary&gt;</span><br><span class="line">    /// 多线程阻塞队列</span><br><span class="line">    /// &lt;/summary&gt;</span><br><span class="line">    public class BlockingQueue&lt;T&gt; : IQueue&lt;T&gt; where T : class</span><br><span class="line">    &#123;</span><br><span class="line">        BlockingCollection&lt;T&gt; _queue;</span><br><span class="line"></span><br><span class="line">        public BlockingQueue()</span><br><span class="line">        &#123;</span><br><span class="line">            _queue = new BlockingCollection&lt;T&gt;();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        /// &lt;summary&gt;</span><br><span class="line">        /// 未处理数量</span><br><span class="line">        /// &lt;/summary&gt;</span><br><span class="line">        public int Count</span><br><span class="line">        &#123;</span><br><span class="line">            get &#123; return _queue.Count; &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        /// &lt;summary&gt;</span><br><span class="line">        /// 出列一个业务项</span><br><span class="line">        /// &lt;/summary&gt;</span><br><span class="line">        /// &lt;returns&gt;&lt;/returns&gt;</span><br><span class="line">        public T Pop()</span><br><span class="line">        &#123;</span><br><span class="line">            return _queue.Take();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        /// &lt;summary&gt;</span><br><span class="line">        /// 将待处理业务项放入公共队列</span><br><span class="line">        /// &lt;/summary&gt;</span><br><span class="line">        /// &lt;param name="item"&gt;&lt;/param&gt;</span><br><span class="line">        public void Push(T item)</span><br><span class="line">        &#123;</span><br><span class="line">            if (item == null)</span><br><span class="line">                throw new Exception("放入数据池的对象不能为null");</span><br><span class="line">            if (_queue.Contains(item))</span><br><span class="line">                throw new Exception("此对象已经存在数据池");</span><br><span class="line">            //注意：</span><br><span class="line">            //如果执行入列和出列的线程是同一个，可能在列队达到最大数量时，</span><br><span class="line">            //入列代码阻塞线程，导致出列代码无法执行，造成死锁；可以用委托执行入列，但有性能损失。</span><br><span class="line">            //或者不设置列队最大数量，避免达到上限数量（我采用此方法）</span><br><span class="line">            _queue.Add(item);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="内存管理器">内存管理器</h2><p>在初始化时，为创建对象分配数据内存，所有对象公用一个数据流，只需为他们设置流的偏移量、长度即可。避免了运行时的频繁申请和释放内存，大幅提升性能。代码如下：<br><figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"><span class="xmlDocTag">///</span> 内存管理器</span></span><br><span class="line">   <span class="keyword">public</span> <span class="keyword">class</span> <span class="title">BufferManager</span></span><br><span class="line">   &#123;</span><br><span class="line">       <span class="comment">//内存空间</span></span><br><span class="line">       <span class="keyword">private</span> <span class="keyword">byte</span>[] _buffer;</span><br><span class="line">       <span class="comment">//总字节</span></span><br><span class="line">       <span class="keyword">private</span> <span class="keyword">int</span> _totalBytes;</span><br><span class="line">       <span class="comment">//每次分配的字节数</span></span><br><span class="line">       <span class="keyword">private</span> <span class="keyword">int</span> _length;</span><br><span class="line">       <span class="comment">//当前空闲空间的偏移量</span></span><br><span class="line">       <span class="keyword">private</span> <span class="keyword">int</span> _offset;</span><br><span class="line"></span><br><span class="line">       <span class="function"><span class="keyword">public</span> <span class="title">BufferManager</span>(<span class="params"><span class="keyword">int</span> totalBytes, <span class="keyword">int</span> length</span>)</span><br><span class="line">       </span>&#123;</span><br><span class="line">           _totalBytes = totalBytes;</span><br><span class="line">           _length = length;</span><br><span class="line">           _offset = <span class="number">0</span>;</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;summary&gt;</span></span></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> 申请内存空间</span></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;/summary&gt;</span></span></span><br><span class="line">       <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">InitBuffer</span>(<span class="params"></span>)</span><br><span class="line">       </span>&#123;</span><br><span class="line">           _buffer = <span class="keyword">new</span> <span class="keyword">byte</span>[_totalBytes];</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;summary&gt;</span></span></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> 为对象设置内存空间</span></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;/summary&gt;</span></span></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;param name="item"&gt;</span>需要分配内存的对象<span class="xmlDocTag">&lt;/param&gt;</span></span></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;param name="DoSetBuffer"&gt;</span>执行内存分配操作<span class="xmlDocTag">&lt;/param&gt;</span></span></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;returns&gt;</span><span class="xmlDocTag">&lt;/returns&gt;</span></span></span><br><span class="line">       <span class="keyword">public</span> <span class="keyword">void</span> SetBuffer&lt;T&gt;(T item, Action&lt;T, <span class="keyword">byte</span>[], <span class="keyword">int</span>, <span class="keyword">int</span>&gt; DoSetBuffer)</span><br><span class="line">       &#123;</span><br><span class="line">           <span class="keyword">if</span> (_length + _offset &gt; _totalBytes)</span><br><span class="line">               <span class="keyword">throw</span> <span class="keyword">new</span> Exception(<span class="string">"内存不足，请检查配置是否正确"</span>);</span><br><span class="line">           DoSetBuffer(item, _buffer, _offset, _length);</span><br><span class="line">           _offset += _length;</span><br><span class="line">       &#125;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="数据收发缓存包">数据收发缓存包</h2><p>都知道TCP的通讯是无边界的，我在发送和接收数据设置了两个高低位长度字节，通过这两个字节计算出实际数据包的长度，然后再读取后续数据，在缓存包对象中维护了一个当前接收的数据流，每次收到接收请求就计算数据头两个字节，比较接收的总长度是否已经收到一个完整数据包，如果是收到一个完整数据包立即放入处理队列，等待处理。代码如下：<br><figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;summary&gt;</span></span></span><br><span class="line">   <span class="comment"><span class="xmlDocTag">///</span> 接收、发送缓存数据管理</span></span><br><span class="line">   <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;/summary&gt;</span></span></span><br><span class="line">   <span class="keyword">public</span> <span class="keyword">class</span> <span class="title">PackageBuffer</span></span><br><span class="line">   &#123;</span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;summary&gt;</span></span></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> 缓存数据</span></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;/summary&gt;</span></span></span><br><span class="line">       <span class="keyword">public</span> <span class="keyword">byte</span>[] Buffer;</span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;summary&gt;</span></span></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> 当前数据长度</span></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;/summary&gt;</span></span></span><br><span class="line">       <span class="keyword">public</span> <span class="keyword">int</span> DataCount;</span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;summary&gt;</span></span></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> 数据包头长度</span></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;/summary&gt;</span></span></span><br><span class="line">       <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">int</span> PackageHeaderLength = <span class="number">2</span>;</span><br><span class="line"></span><br><span class="line">       <span class="function"><span class="keyword">public</span> <span class="title">PackageBuffer</span>(<span class="params"><span class="keyword">int</span> size</span>)</span><br><span class="line">       </span>&#123;</span><br><span class="line">           Buffer = <span class="keyword">new</span> <span class="keyword">byte</span>[size];</span><br><span class="line">           DataCount = <span class="number">0</span>;</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;summary&gt;</span></span></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> 获取当前数据长度</span></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;/summary&gt;</span></span></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;returns&gt;</span><span class="xmlDocTag">&lt;/returns&gt;</span></span></span><br><span class="line">       <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">GetDataCount</span>(<span class="params"></span>)</span><br><span class="line">       </span>&#123;</span><br><span class="line">           <span class="keyword">return</span> DataCount;</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;summary&gt;</span></span></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> 获取可用空间长度</span></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;/summary&gt;</span></span></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;returns&gt;</span><span class="xmlDocTag">&lt;/returns&gt;</span></span></span><br><span class="line">       <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">GetReserveCount</span>(<span class="params"></span>)</span><br><span class="line">       </span>&#123;</span><br><span class="line">           <span class="keyword">return</span> Buffer.Length - DataCount;</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;summary&gt;</span></span></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> 获取缓存流中下一个请求数据包</span></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;/summary&gt;</span></span></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;returns&gt;</span>有新数据请求true<span class="xmlDocTag">&lt;/returns&gt;</span></span></span><br><span class="line">       <span class="function"><span class="keyword">public</span> <span class="keyword">bool</span> <span class="title">GetFirstPackage</span>(<span class="params"><span class="keyword">ref</span> <span class="keyword">int</span> count</span>)</span><br><span class="line">       </span>&#123;</span><br><span class="line">           <span class="keyword">if</span> (DataCount &lt;= PackageHeaderLength)</span><br><span class="line">               <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">           <span class="keyword">int</span> length = Buffer[<span class="number">0</span>] * <span class="number">256</span> + Buffer[<span class="number">1</span>];</span><br><span class="line">           <span class="keyword">if</span> (length &gt; <span class="number">65535</span>)</span><br><span class="line">           &#123;</span><br><span class="line">               <span class="comment">//清空数据</span></span><br><span class="line">               DataCount = <span class="number">0</span>;</span><br><span class="line">               <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">           &#125;</span><br><span class="line">           <span class="keyword">if</span> (length &gt; DataCount)</span><br><span class="line">               <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">           count = length + PackageHeaderLength;</span><br><span class="line">           <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">       <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">ClearFirstPackage</span>(<span class="params"></span>)</span><br><span class="line">       </span>&#123;</span><br><span class="line">           <span class="keyword">if</span> (DataCount &lt;= PackageHeaderLength)</span><br><span class="line">               <span class="keyword">return</span>;</span><br><span class="line">           <span class="keyword">int</span> length = Buffer[<span class="number">0</span>] * <span class="number">256</span> + Buffer[<span class="number">1</span>];</span><br><span class="line">           <span class="keyword">if</span> (length &gt; <span class="number">65535</span> | length &gt;= Buffer.Length)</span><br><span class="line">               DataCount = <span class="number">0</span>;</span><br><span class="line">           Clear(length + PackageHeaderLength);</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;summary&gt;</span></span></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> 清除所有数据</span></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;/summary&gt;</span></span></span><br><span class="line">       <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">Clear</span>(<span class="params"></span>)</span><br><span class="line">       </span>&#123;</span><br><span class="line">           DataCount = <span class="number">0</span>;</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;summary&gt;</span></span></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> 清除指定长度数据</span></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;/summary&gt;</span></span></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;param name="count"&gt;</span><span class="xmlDocTag">&lt;/param&gt;</span></span></span><br><span class="line">       <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">Clear</span>(<span class="params"><span class="keyword">int</span> count</span>)</span><br><span class="line">       </span>&#123;</span><br><span class="line">           <span class="keyword">if</span> (count &gt;= Buffer.Length)</span><br><span class="line">           &#123;</span><br><span class="line">               DataCount = <span class="number">0</span>;</span><br><span class="line">           &#125;</span><br><span class="line">           <span class="keyword">else</span></span><br><span class="line">           &#123;</span><br><span class="line">               System.Buffer.BlockCopy(Buffer, count, Buffer, <span class="number">0</span>, DataCount - count);</span><br><span class="line">               DataCount -= count;</span><br><span class="line">           &#125;</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;summary&gt;</span></span></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> 设置缓存流长度</span></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;/summary&gt;</span></span></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;param name="size"&gt;</span><span class="xmlDocTag">&lt;/param&gt;</span></span></span><br><span class="line">       <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">SetBufferSize</span>(<span class="params"><span class="keyword">int</span> size</span>)</span><br><span class="line">       </span>&#123;</span><br><span class="line">           <span class="keyword">if</span> (size &lt;= Buffer.Length)</span><br><span class="line">               <span class="keyword">return</span>;</span><br><span class="line">           <span class="keyword">byte</span>[] tmp = <span class="keyword">new</span> <span class="keyword">byte</span>[size];</span><br><span class="line">           System.Buffer.BlockCopy(Buffer, <span class="number">0</span>, tmp, <span class="number">0</span>, Buffer.Length);</span><br><span class="line">           Buffer = tmp;</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;summary&gt;</span></span></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> 写入数据 </span></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;/summary&gt;</span></span></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;param name="buffer"&gt;</span><span class="xmlDocTag">&lt;/param&gt;</span></span></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;param name="offset"&gt;</span><span class="xmlDocTag">&lt;/param&gt;</span></span></span><br><span class="line">       <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;param name="count"&gt;</span><span class="xmlDocTag">&lt;/param&gt;</span></span></span><br><span class="line">       <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">WriteBuffer</span>(<span class="params"><span class="keyword">byte</span>[] buffer, <span class="keyword">int</span> offset, <span class="keyword">int</span> count, <span class="keyword">bool</span> addLengthHeader = <span class="keyword">false</span></span>)</span><br><span class="line">       </span>&#123;</span><br><span class="line">           <span class="keyword">if</span> (GetReserveCount() &lt; count)<span class="comment">//申请更多内存</span></span><br><span class="line">           &#123;</span><br><span class="line">               <span class="keyword">int</span> newSize = Buffer.Length + (count * <span class="number">2</span>);</span><br><span class="line">               <span class="keyword">byte</span>[] tmp = <span class="keyword">new</span> <span class="keyword">byte</span>[newSize];</span><br><span class="line">               System.Buffer.BlockCopy(Buffer, <span class="number">0</span>, tmp, <span class="number">0</span>, DataCount);</span><br><span class="line">               Buffer = tmp;</span><br><span class="line"></span><br><span class="line">           &#125;</span><br><span class="line">           <span class="keyword">if</span> (addLengthHeader)</span><br><span class="line">           &#123;</span><br><span class="line">               Buffer[DataCount] = Convert.ToByte((<span class="keyword">int</span>)(count / <span class="number">256</span>));</span><br><span class="line">               Buffer[DataCount + <span class="number">1</span>] = Convert.ToByte(count % <span class="number">256</span>);</span><br><span class="line">               DataCount += <span class="number">2</span>;</span><br><span class="line">           &#125;</span><br><span class="line">           System.Buffer.BlockCopy(buffer, offset, Buffer, DataCount, count);</span><br><span class="line">           DataCount += count;</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">       <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">WriteBuffer</span>(<span class="params"><span class="keyword">byte</span>[] buffer</span>)</span><br><span class="line">       </span>&#123;</span><br><span class="line">           WriteBuffer(buffer, <span class="number">0</span>, buffer.Length);</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="工作线程">工作线程</h2><p>工作线程为后台线程，一直在并发的循环获取待处理列队中的数据，这里没有为工作线程池做开始、结束方式。<br>微软的BlockingCollection集合在无数据可处理时会休眠线程，让出CPU时间片。<br>注意：工作线程数尽量不要超过PC中的逻辑线程数，否则会引起额外的线程上下文切换，反而没有提高性能。<br>停止系统时：工作线程将休眠在获取数据的位置，等待系统重新开启，有新数据进入列队时，集合会唤醒线程开始工作。<br>退出系统时：线程自动销毁。<br><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line">/// &lt;summary&gt;</span><br><span class="line">/// 工作线程池</span><br><span class="line">/// &lt;/summary&gt;</span><br><span class="line">public class ThreadWorkPool&lt;T&gt; where T : class</span><br><span class="line">&#123;</span><br><span class="line">    //工作线程集合</span><br><span class="line">    private Thread[] _workThread;</span><br><span class="line">    //待处理业务列队</span><br><span class="line">    private IQueue&lt;T&gt; _queue;</span><br><span class="line">    //处理业务方法的委托</span><br><span class="line">    private Func&lt;T, bool&gt; _processWork;</span><br><span class="line">    //处理业务出错时要调用方法的委托</span><br><span class="line">    private Action&lt;T&gt; _doWorkError;</span><br><span class="line"></span><br><span class="line">    public ThreadWorkPool(IQueue&lt;T&gt; queue, int threadNum, Func&lt;T, bool&gt; doWork, Action&lt;T&gt; doWorkError)</span><br><span class="line">    &#123;</span><br><span class="line">        _queue = queue;</span><br><span class="line">        _workThread = new Thread[threadNum];</span><br><span class="line">        _processWork = doWork;</span><br><span class="line">        _doWorkError = doWorkError;</span><br><span class="line">        //初始化并启动所有工作线程</span><br><span class="line">        for (int i = 0; i &lt; threadNum; i++)</span><br><span class="line">        &#123;</span><br><span class="line">            _workThread[i] = new Thread(DoWrok);</span><br><span class="line">            _workThread[i].IsBackground = true;</span><br><span class="line">            _workThread[i].Start();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void DoWrok()</span><br><span class="line">    &#123;</span><br><span class="line">        T item = null;</span><br><span class="line">        while (true)</span><br><span class="line">        &#123;</span><br><span class="line">            //并发的从列队中获取一个数据</span><br><span class="line">            item = _queue.Pop();</span><br><span class="line">            if (item == null)</span><br><span class="line">            &#123;</span><br><span class="line">                Globals.WriteLog(IocpLogType.Warning, "业务处理出错，取出的待处理业务项为null ");</span><br><span class="line">                continue;</span><br><span class="line">            &#125;</span><br><span class="line">            if (_processWork(item) == false)//处理方法返回false表示处理出现错误</span><br><span class="line">            &#123;</span><br><span class="line">                //业务处理失败</span><br><span class="line">                _doWorkError(item);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="超时检测">超时检测</h2><p>检测了两种超时，一个是数据接收超时，一个是整个客户端生存周期超时。<br>接收超时：在投递接收请求时，将当前客户端加入接收超时检测集合中，超时检测线程将开始判断他的超时时间，若超时，强制下线。收到数据后从超时检测集合中移除。<br>生存周期超时：在客户端连接时，加入已连接客户端集合中，超时检测线程开始判断他的已连接时间是否已经超时，若超时，强制下线。<br>超时检测集合与已连接客户端集合都使用前面的DataPool数据池实现。代码如下：<br><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><span class="line">/// 超时检测线程</span><br><span class="line">    public class CheckOverTime&lt;T&gt; where T : UserToken</span><br><span class="line">    &#123;</span><br><span class="line">        //运行状态</span><br><span class="line">        private bool _runing = false;</span><br><span class="line">        //每次检测后的休眠时间</span><br><span class="line">        private int _sleepTime;</span><br><span class="line">        //设定的超时时间</span><br><span class="line">        private int _overtime;</span><br><span class="line">        //超时检测线程</span><br><span class="line">        private Thread _thread;</span><br><span class="line">        //待检测的数据集合</span><br><span class="line">        private DataPool&lt;T&gt; _checkOvertimeList;</span><br><span class="line">        //检测方法的委托</span><br><span class="line">        Action&lt;T, int&gt; _doCheck;</span><br><span class="line"></span><br><span class="line">        public CheckOverTime(int sleepTime, int overtime, DataPool&lt;T&gt; checkOvertimeList, Action&lt;T, int&gt; doCheck)</span><br><span class="line">        &#123;</span><br><span class="line">            _thread = new Thread(Check);</span><br><span class="line">            _thread.IsBackground = true;</span><br><span class="line">            _sleepTime = sleepTime;</span><br><span class="line">            _overtime = overtime;</span><br><span class="line">            _checkOvertimeList = checkOvertimeList;</span><br><span class="line">            _doCheck = doCheck;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        /// &lt;summary&gt;</span><br><span class="line">        /// 开始检测</span><br><span class="line">        /// &lt;/summary&gt;</span><br><span class="line">        public void Start()</span><br><span class="line">        &#123;</span><br><span class="line">            _runing = true;</span><br><span class="line">            _thread = new Thread(Check);</span><br><span class="line">            _thread.IsBackground = true;</span><br><span class="line">            _thread.Start();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        /// &lt;summary&gt;</span><br><span class="line">        /// 停止检测</span><br><span class="line">        /// &lt;/summary&gt;</span><br><span class="line">        public void Stop()</span><br><span class="line">        &#123;</span><br><span class="line">            _runing = false;</span><br><span class="line">            try</span><br><span class="line">            &#123;</span><br><span class="line">                _thread.Abort();</span><br><span class="line">                _thread = null;</span><br><span class="line">            &#125;</span><br><span class="line">            catch &#123; &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        /// &lt;summary&gt;</span><br><span class="line">        /// 开始遍历检测</span><br><span class="line">        /// &lt;/summary&gt;</span><br><span class="line">        public void Check()</span><br><span class="line">        &#123;</span><br><span class="line">            //Abort线程会使其触发一个ThreadAbortException异常，所以try起来</span><br><span class="line">            try</span><br><span class="line">            &#123;</span><br><span class="line">                while (_runing)</span><br><span class="line">                &#123;</span><br><span class="line">                    T[] array = _checkOvertimeList.ToArray();</span><br><span class="line">                    foreach (T item in array)</span><br><span class="line">                    &#123;</span><br><span class="line">                        _doCheck(item, _overtime);</span><br><span class="line">                    &#125;</span><br><span class="line">                    Thread.Sleep(_sleepTime);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            catch &#123; &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="日志记录">日志记录</h2><p>日志分为三类，普通信息，警告信息，错误信息。代码如下：<br><figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;summary&gt;</span></span></span><br><span class="line">    <span class="comment"><span class="xmlDocTag">///</span> 日志记录</span></span><br><span class="line">    <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;/summary&gt;</span></span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">class</span> <span class="title">Log</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">object</span> _objLock = <span class="keyword">new</span> <span class="keyword">object</span>();</span><br><span class="line">        <span class="comment">//日志输出委托</span></span><br><span class="line">        <span class="keyword">public</span> <span class="keyword">static</span> Action&lt;IocpLogType, <span class="keyword">string</span>&gt; OutputLog;</span><br><span class="line"></span><br><span class="line">        <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;summary&gt;</span></span></span><br><span class="line">        <span class="comment"><span class="xmlDocTag">///</span> 记录</span></span><br><span class="line">        <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;/summary&gt;</span></span></span><br><span class="line">        <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;param name="type"&gt;</span>日志类型<span class="xmlDocTag">&lt;/param&gt;</span></span></span><br><span class="line">        <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;param name="msg"&gt;</span>内容<span class="xmlDocTag">&lt;/param&gt;</span></span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">WriteLog</span>(<span class="params">IocpLogType type, <span class="keyword">string</span> msg</span>)</span><br><span class="line">        </span>&#123;</span><br><span class="line">            <span class="keyword">lock</span> (_objLock)</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="keyword">if</span> (OutputLog != <span class="keyword">null</span>)</span><br><span class="line">                    OutputLog(type, msg);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">WriteLog</span>(<span class="params">IocpLogType type, <span class="keyword">string</span> msg, <span class="keyword">object</span>[] args</span>)</span><br><span class="line">        </span>&#123;</span><br><span class="line">            <span class="keyword">lock</span> (_objLock)</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="keyword">if</span> (OutputLog != <span class="keyword">null</span>)</span><br><span class="line">                    OutputLog(type, <span class="keyword">string</span>.Format(msg, args));</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure></p>
+<p>到这里，IOCP框架需要的相关功能介绍的差不多了，下一章将详细介绍IOCP核心功能实现。<br>项目源码点<a href="http://www.knna.me/files/iocp.rar">这里下载</a></p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/IOCP高并发框架/">IOCP高并发框架</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/IOCP/">IOCP</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="http://www.knna.me/2015/10/10/IOCP完成端口实例（一）/" data-title="IOCP完成端口实例（一） | KNNA-个人博客" data-tsina="1661199722" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2015/10/11/IOCP完成端口实例（二）/" title="IOCP完成端口实例（二）">
+  <strong>上一篇：</strong><br/>
+  <span>
+  IOCP完成端口实例（二）</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2015/09/19/WPF使用模板自定义控件样式/"  title="WPF使用模板自定义控件样式">
+ <strong>下一篇：</strong><br/> 
+ <span>WPF使用模板自定义控件样式
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2015/10/10/IOCP完成端口实例（一）/" data-title="IOCP完成端口实例（一）" data-url="http://www.knna.me/2015/10/10/IOCP完成端口实例（一）/"></div>
+</section>
+
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#IOCP框架"><span class="toc-number">1.</span> <span class="toc-text">IOCP框架</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#工作流程"><span class="toc-number">2.</span> <span class="toc-text">工作流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#功能模块"><span class="toc-number">3.</span> <span class="toc-text">功能模块</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#数据池"><span class="toc-number">4.</span> <span class="toc-text">数据池</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#空闲数据池"><span class="toc-number">4.1.</span> <span class="toc-text">空闲数据池</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#无序数据池"><span class="toc-number">4.2.</span> <span class="toc-text">无序数据池</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#待处理业务数据池"><span class="toc-number">4.3.</span> <span class="toc-text">待处理业务数据池</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#内存管理器"><span class="toc-number">5.</span> <span class="toc-text">内存管理器</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#数据收发缓存包"><span class="toc-number">6.</span> <span class="toc-text">数据收发缓存包</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#工作线程"><span class="toc-number">7.</span> <span class="toc-text">工作线程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#超时检测"><span class="toc-number">8.</span> <span class="toc-text">超时检测</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#日志记录"><span class="toc-number">9.</span> <span class="toc-text">日志记录</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/DotNet技术/" title="DotNet技术">DotNet技术<sup>13</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/IOCP高并发框架/" title="IOCP高并发框架">IOCP高并发框架<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ISO8583/" title="ISO8583">ISO8583<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Oracle/" title="Oracle">Oracle<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/PowerDesigner/" title="PowerDesigner">PowerDesigner<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客搭建/" title="博客搭建">博客搭建<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/虚拟机/" title="虚拟机">虚拟机<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/阅读/" title="阅读">阅读<sup>2</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/Oracle/" title="Oracle">Oracle<sup>11</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/PLSQL/" title="PLSQL">PLSQL<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/WPF/" title="WPF">WPF<sup>5</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/EF/" title="EF">EF<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Oracle虚拟机/" title="Oracle虚拟机">Oracle虚拟机<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ISO8583/" title="ISO8583">ISO8583<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/IOCP/" title="IOCP">IOCP<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/模板/" title="模板">模板<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/自定义控件/" title="自定义控件">自定义控件<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Socket/" title="Socket">Socket<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Mahapps-Metro/" title="Mahapps.Metro">Mahapps.Metro<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/MVVM/" title="MVVM">MVVM<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/PowerDesigner/" title="PowerDesigner">PowerDesigner<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/领域驱动设计/" title="领域驱动设计">领域驱动设计<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/人生就是一场突如其来的旅行/" title="人生就是一场突如其来的旅行">人生就是一场突如其来的旅行<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Oracle问题/" title="Oracle问题">Oracle问题<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/反射/" title="反射">反射<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/GitHub/" title="GitHub">GitHub<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Log4net/" title="Log4net">Log4net<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="http://www.knna.me" target="_blank" title="欢迎互换外链">欢迎互换外链</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.wxzzz.com" target="_blank" title="王旭博客">王旭博客</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+  <div class="weiboshow">
+  <p class="asidetitle">新浪微博</p>
+    <iframe width="100%" height="300" class="share_self"  frameborder="0" scrolling="no" src="http://widget.weibo.com/weiboshow/index.php?language=&width=0&height=300&fansRow=2&ptype=1&speed=0&skin=1&isTitle=1&noborder=1&isWeibo=1&isFans=1&uid=1661199722&verifier=3b01a22b&dpc=1"></iframe>
+</div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<section class="info">
+		<p> 	今天拥有的东西，可能恰恰是阻碍你前行的包袱，  <br/>
+			放下包袱，不是失去，而是一次新的开始！</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		<a href="http://weibo.com/1661199722" target="_blank" class="icon-weibo" title="微博"></a>
+		
+		
+		<a href="https://github.com/knna" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		<a href="https://twitter.com/knnapan" target="_blank" class="icon-twitter" title="twitter"></a>
+		
+		
+		
+		
+		
+		
+		
+	</div>
+			
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2015 
+		
+		<a href="/about" target="_blank" title="KNNA">KNNA</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<div class="hoverqrcode clearfix"></div>',
+  '<a class="overlay" id="qrcode"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+
+  $('.hoverqrcode').hide();
+
+  var myWidth = 0;
+  function updatehoverqrcode(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+    var qrsize = myWidth > 1024 ? 200:100;
+    var options = {render: 'image', size: qrsize, fill: '#2ca6cb', text: url, radius: 0.5, quiet: 1};
+    var p = $('.article-share-qrcode').position();
+    $('.hoverqrcode').empty().css('width', qrsize).css('height', qrsize)
+                          .css('left', p.left-qrsize/2+20).css('top', p.top-qrsize-10)
+                          .qrcode(options);
+  };
+  $(window).resize(function(){
+    $('.hoverqrcode').hide();
+  });
+  $('.article-share-qrcode').click(function(){
+    updatehoverqrcode();
+    $('.hoverqrcode').toggle();
+  });
+  $('.article-share-qrcode').hover(function(){}, function(){
+      $('.hoverqrcode').hide();
+  });
+});   
+</script>
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"KNNA"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F28572b2f7a37d925fcb70c7147b2cac9' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="返回顶部"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<script>
+var option = {
+  engineKey: '4fcfbbd7e56708fd8651'
+};
+(function(w,d,t,u,n,s,e){
+  s = d.createElement(t);
+  s.src = u;
+  s.async = 1;
+  w[n] = function(r){
+    w[n].opts = r;
+  };
+  e = d.getElementsByTagName(t)[0];
+  e.parentNode.insertBefore(s, e);
+})(window,document,'script','//tinysou-cdn.b0.upaiyun.com/ts.js','_ts');
+_ts(option);
+</script>
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

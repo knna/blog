@@ -1,0 +1,659 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>使用ORM框架(EF6)基于插件模式封装数据访问层（二）数据访问组件 | KNNA-个人博客</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="KNNA">
+    
+
+    
+    <meta name="description" content="数据访问组件第一章大致介绍了使用插件模式实现数据访问层的好处，可以完全将业务层和数据访问层解耦，达到面向接口编程的目的。EF属于配置型框架，当我们需要切换底层数据访问层实现时，无需编译程序，只需在程序配置文件中进行配置即可，非常灵活方便。切换底层数据访问组件一般有两个目的：
+
+
+向另一种数据库切换的时候，新的组件中实现了对另一个数据库的访问。
+因为各种原因需要重新实现现有组件并替换的时候。
+
+
+在">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用ORM框架(EF6)基于插件模式封装数据访问层（二）数据访问组件">
+<meta property="og:url" content="http://www.knna.me/2015/10/21/使用ORM框架(EF6)基于插件模式封装数据访问层（二）数据访问组件/index.html">
+<meta property="og:site_name" content="KNNA-个人博客">
+<meta property="og:description" content="数据访问组件第一章大致介绍了使用插件模式实现数据访问层的好处，可以完全将业务层和数据访问层解耦，达到面向接口编程的目的。EF属于配置型框架，当我们需要切换底层数据访问层实现时，无需编译程序，只需在程序配置文件中进行配置即可，非常灵活方便。切换底层数据访问组件一般有两个目的：
+
+
+向另一种数据库切换的时候，新的组件中实现了对另一个数据库的访问。
+因为各种原因需要重新实现现有组件并替换的时候。
+
+
+在">
+<meta property="og:updated_time" content="2015-12-30T05:40:54.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="使用ORM框架(EF6)基于插件模式封装数据访问层（二）数据访问组件">
+<meta name="twitter:description" content="数据访问组件第一章大致介绍了使用插件模式实现数据访问层的好处，可以完全将业务层和数据访问层解耦，达到面向接口编程的目的。EF属于配置型框架，当我们需要切换底层数据访问层实现时，无需编译程序，只需在程序配置文件中进行配置即可，非常灵活方便。切换底层数据访问组件一般有两个目的：
+
+
+向另一种数据库切换的时候，新的组件中实现了对另一个数据库的访问。
+因为各种原因需要重新实现现有组件并替换的时候。
+
+
+在">
+<meta name="twitter:creator" content="@knnapan">
+
+    
+    <link rel="alternative" href="/atom.xml" title="KNNA-个人博客" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+</head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.png" alt="KNNA-个人博客" title="KNNA-个人博客"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="KNNA-个人博客">KNNA-个人博客</a></h1>
+				<h2 class="blog-motto">.NET Developer</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">首页</a></li>
+					
+						<li><a href="/archives">文章</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+ 					
+						<form class="search">
+							<label>Search</label>
+						<input type="text" id="ts-search-input" name="q" size="30" placeholder="搜索"><br>
+						</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2015/10/21/使用ORM框架(EF6)基于插件模式封装数据访问层（二）数据访问组件/" title="使用ORM框架(EF6)基于插件模式封装数据访问层（二）数据访问组件" itemprop="url">使用ORM框架(EF6)基于插件模式封装数据访问层（二）数据访问组件</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="KNNA" target="_blank" itemprop="author">KNNA</a>
+		
+  <p class="article-time">
+    <time datetime="2015-10-21T10:48:58.000Z" itemprop="datePublished"> 发表于 2015-10-21</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		
+			<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#数据访问组件"><span class="toc-number">1.</span> <span class="toc-text">数据访问组件</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#SqlServer数据库组件"><span class="toc-number">2.</span> <span class="toc-text">SqlServer数据库组件</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#数据访问组件实现"><span class="toc-number">2.1.</span> <span class="toc-text">数据访问组件实现</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#领域模型映射限制"><span class="toc-number">2.2.</span> <span class="toc-text">领域模型映射限制</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#数据映射器"><span class="toc-number">2.3.</span> <span class="toc-text">数据映射器</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#下一节"><span class="toc-number">3.</span> <span class="toc-text">下一节</span></a></li></ol>
+		
+		</div>
+		
+		<h1 id="数据访问组件">数据访问组件</h1><p>第一章大致介绍了使用插件模式实现数据访问层的好处，可以完全将业务层和数据访问层解耦，达到面向接口编程的目的。<br>EF属于配置型框架，当我们需要切换底层数据访问层实现时，无需编译程序，只需在程序配置文件中进行配置即可，非常灵活方便。切换底层数据访问组件一般有两个目的：</p>
+<blockquote>
+<ul>
+<li>向另一种数据库切换的时候，新的组件中实现了对另一个数据库的访问。</li>
+<li>因为各种原因需要重新实现现有组件并替换的时候。</li>
+</ul>
+</blockquote>
+<p>在示例程序中开发了三个数据库组件，切换组件的目的就是为了使用不同的数据库。</p>
+<h1 id="SqlServer数据库组件">SqlServer数据库组件</h1><p>MSSQL（Microsoft SqlServer）是EF原生支持的，不用下载任何驱动即可访问，很方便。在搭建项目框架时我们已经为组件安装了EF插件，现在直接开始编写代码。</p>
+<h2 id="数据访问组件实现">数据访问组件实现</h2><p>首先创建 SqlServerDataContext 数据访问组件对象，它继承了上一节介绍的BaseDataContext抽象基类，在Repository项目中。<br>重写了GetDataMapper方法，其中实现了每个业务逻辑层的领域模型和数据映射器的对应关系，方法根据不同的类型，返回此类型对应的数据映射器接口。<br>其实也可以使用控制反转的方式来映射每个类型，并且使数据访问组件不再引用业务逻辑层中的领域模型，不过由于这里的类型与它相对应的数据映射器是不会改变的，也就没必要使用控制反转了。而且他们的引用也仅限于使用了类名，是相对非常松散的耦合。不会为以后的拓展带来麻烦。<br>SqlServerDataContext 代码：<br>cs<figure class="highlight cs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;summary&gt;</span></span></span><br><span class="line"><span class="comment"><span class="xmlDocTag">///</span> MSSQL数据访问组件对象</span></span><br><span class="line"><span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;/summary&gt;</span></span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">SqlServerDataContext</span> : <span class="title">BaseDataContext</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">override</span> IDataMapper&lt;T&gt; GetDataMapper&lt;T&gt;()</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">//每次调用一个方法都实例化一个数据访问对象，因为EF数据访问对象不是为长时间使用准备的</span></span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">typeof</span>(T) == <span class="keyword">typeof</span>(Order))</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">return</span> (IDataMapper&lt;T&gt;)<span class="keyword">new</span> OrderDataMapper();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="comment">//暂不支持其他类型</span></span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> Exception(<span class="string">"unsupported type"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="领域模型映射限制">领域模型映射限制</h2><p>在示例中，每个领域模型直接通过数据映射器对应到数据库中，如果不加限制的话，可能生成的数据库就不是我们预期想要的了。<br>比如Order领域模型类中，有主键ID-int，有单号Number-string，在没有为他们的属性进行限定的时候，生成出来的ID字段不是主键，并且Number的类型也是个非常大的字符型。<br>所以我在领域模型中创建了映射限定类来限定每个领域模型中需要映射到数据库的属性或主键。<br>首先创建了一个基类：BaseDomainMapping<br>代码如下：<br>cs<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/// &lt;summary&gt;</span></span><br><span class="line"> <span class="comment">/// 领域模型映射限定基类</span></span><br><span class="line"> <span class="comment">/// &lt;/summary&gt;</span></span><br><span class="line"> <span class="comment">/// &lt;typeparam name="T"&gt;&lt;/typeparam&gt;</span></span><br><span class="line"> <span class="keyword">public</span> abstract <span class="keyword">class</span> BaseDomainMapping&lt;T&gt; : EntityTypeConfiguration&lt;T&gt;</span><br><span class="line">where T : <span class="keyword">class</span>, <span class="keyword">new</span>()</span><br><span class="line"> &#123;</span><br><span class="line"></span><br><span class="line">     <span class="function"><span class="keyword">public</span> <span class="title">BaseDomainMapping</span><span class="params">()</span></span><br><span class="line">     </span>&#123;</span><br><span class="line">         Init();</span><br><span class="line">     &#125;</span><br><span class="line">     <span class="comment">/// &lt;summary&gt;</span></span><br><span class="line">     <span class="comment">/// 初始化代码</span></span><br><span class="line">     <span class="comment">/// &lt;/summary&gt;</span></span><br><span class="line">     <span class="function"><span class="keyword">public</span> <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">Init</span><span class="params">()</span></span><br><span class="line">     </span>&#123;</span><br><span class="line">         <span class="comment">//每个映射实体初始化属性相关信息</span></span><br><span class="line">     &#125;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure></p>
+<p>然后为每个领域模型创建一个映射限定类，并继承BaseDomainMapping基类，重写init()方法。这里我创建了一个Order模型的映射限定类，代码如下：<br>cs<figure class="highlight actionscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/// &lt;summary&gt;</span></span><br><span class="line"><span class="comment">/// order领域模型映射限定类</span></span><br><span class="line"><span class="comment">/// &lt;/summary&gt;</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">OrderMapping</span> : <span class="title">BaseDomainMapping</span>&lt;<span class="title">Order</span>&gt;</span><br><span class="line"></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">override</span> <span class="keyword">void</span> Init()</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">//映射到数据库的表名为Orders</span></span><br><span class="line">        <span class="keyword">this</span>.ToTable(<span class="string">"Orders"</span>);</span><br><span class="line">        <span class="comment">//映射到数据库表中的主键为ID</span></span><br><span class="line">        <span class="keyword">this</span>.HasKey(l =&gt; l.ID);</span><br><span class="line">        <span class="comment">//映射到数据库表中的字段Number为非空，并且最大50个字符长度。</span></span><br><span class="line">        <span class="keyword">this</span>.Property(l =&gt; l.Number).HasMaxLength(<span class="number">50</span>).IsRequired();</span><br><span class="line">        <span class="comment">//映射到数据库表中的字段ShipAmount为非空。</span></span><br><span class="line">        <span class="keyword">this</span>.Property(l =&gt; l.ShipAmount).IsRequired();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>在方法init()中，代码注释表明了每行代码的限定含义。并在下面要介绍的数据映射器中加载这些限定配置信息。</p>
+<h2 id="数据映射器">数据映射器</h2><p>数据映射器就是将模型数据转换为数据库数据进行操作的地方了，所以EF出场！每个数据映射器都需要继承EF中的类型DbContext，通过它可以实现基础的数据操作。<br>在为每一个模型创建数据映射器前，我们首先创建一个BaseDbContext数据映射器基类。<br>实际开发中，很多模型只是简单的增删改查操作，所以定义一个通用基类是有必要的，基类实现IDataMapper接口并实现所有方法细节。然后让简单的类型来继承它，这样就不用再去写一些重复的代码了。<br>当然此基类也需要继承EF的基类DbContext从而实现数据操作。<br>数据映射器的运行流程：</p>
+<blockquote>
+<ul>
+<li>实例化：在实例化数据映射器时也实例化了他继承的基类。</li>
+<li>在基类构造函数中：向EF数据上下文的构造函数传递连接字符串资源名，它在内部对配置文件进行查找</li>
+<li>触发OnModelCreating事件：调用Utility.LoadMapping(modelBuilder)方法加载上面介绍过的映射限定信息。</li>
+<li>在Utility.LoadMapping(modelBuilder)方法中使用反射了来获取所有BaseDomainMapping类型的派生类，然后创建所有派生类实例，并将每个实例加载到构造器中。</li>
+</ul>
+</blockquote>
+<p>Order领域模型的数据映射器OrderDataMapper，可以看到没有写任何代码，直接继承基类即可实现基本操作。代码如下：<br>cs<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/// &lt;summary&gt;</span></span><br><span class="line"><span class="comment">/// order对象的数据映射器</span></span><br><span class="line"><span class="comment">/// &lt;/summary&gt;</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">OrderDataMapper</span> : <span class="typename">BaseDbContext</span>&lt;<span class="type">Order</span>&gt;</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//如果order表比较复杂，可以创建一个新的实体类型</span></span><br><span class="line">    <span class="comment">//将order领域模型中需要持久化的数据和表关系映射到新类型中</span></span><br><span class="line">    <span class="comment">//在用新类型进行数据持久化操作时，OrderDataMapper映射器不再继承BaseDbContext</span></span><br><span class="line">    <span class="comment">//因为BaseDbContext是通用接口，适用于简单领域模型的持久化操作</span></span><br><span class="line">    <span class="comment">//复杂类型的数据映射器直接继承和实现 DbContext, IDataMapper&lt;T&gt; where T : class,new() 然后自己手动实现每个接口的细节</span></span><br><span class="line">    <span class="comment">//这也是领域模型的难点所在：将领域模型与数据库模型对应起来。</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>下面的代码介绍了基类如何使用EF操作进行对象的CRUD相关操作，EF的每个操作都在代码中以注释的方式介绍。<br>BaseDbContext数据映射器基类代码：<br>cs<figure class="highlight d"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line">    <span class="comment">/// &lt;summary&gt;</span></span><br><span class="line">    <span class="comment">/// 数据映射器通用实现基类</span></span><br><span class="line">    <span class="comment">/// &lt;/summary&gt;</span></span><br><span class="line">    <span class="comment">/// &lt;typeparam name="T"&gt;&lt;/typeparam&gt;</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">class</span> BaseDbContext&lt;T&gt; : DbContext, IDataMapper&lt;T&gt; where T : <span class="keyword">class</span>,IEntity, <span class="keyword">new</span>()</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">/// &lt;summary&gt;</span></span><br><span class="line">        <span class="comment">///向EF数据上下文的构造函数传递连接字符串资源名，它在内部对配置文件进行查找</span></span><br><span class="line">        <span class="comment">/// &lt;/summary&gt;</span></span><br><span class="line">        <span class="keyword">public</span> BaseDbContext()</span><br><span class="line">            : base(<span class="string">"name=MySqlConnectionString"</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            EFConfig config = <span class="keyword">new</span> EFConfig();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/// &lt;summary&gt;</span></span><br><span class="line">        <span class="comment">/// 模型创建前触发，每个类型的映射器第一次实例化会触发，以后实例化不会触发此事件</span></span><br><span class="line">        <span class="comment">/// &lt;/summary&gt;</span></span><br><span class="line">        <span class="keyword">protected</span> <span class="keyword">override</span> <span class="keyword">void</span> OnModelCreating(DbModelBuilder modelBuilder)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="comment">//加载领域模型映射限定信息</span></span><br><span class="line">            Utility.LoadMapping(modelBuilder);</span><br><span class="line">            base.OnModelCreating(modelBuilder);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/// &lt;summary&gt;</span></span><br><span class="line">        <span class="comment">/// 数据上下文实体列表</span></span><br><span class="line">        <span class="comment">/// &lt;/summary&gt;</span></span><br><span class="line">        <span class="keyword">public</span> DbSet&lt;T&gt; Entitys &#123; get; set; &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/// &lt;summary&gt;</span></span><br><span class="line">        <span class="comment">/// 新增一个对象</span></span><br><span class="line">        <span class="comment">/// &lt;/summary&gt;</span></span><br><span class="line">        <span class="keyword">public</span> virtual <span class="built_in">bool</span> Create(T item)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="comment">//将需要新增的对象添加到实体列表即可，此时对象还在内存中</span></span><br><span class="line">            <span class="keyword">this</span>.Entitys.Add(item);</span><br><span class="line">            <span class="comment">//将所做的操作保存到数据库</span></span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">this</span>.SaveChanges() &gt; <span class="number">0</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/// &lt;summary&gt;</span></span><br><span class="line">        <span class="comment">/// 更细一个对象</span></span><br><span class="line">        <span class="comment">/// &lt;/summary&gt;</span></span><br><span class="line">        <span class="keyword">public</span> virtual <span class="built_in">bool</span> Update(T item)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="comment">//将对象的状态标记为已修改即可，此时对象还没有保存到数据库</span></span><br><span class="line">            <span class="keyword">this</span>.Entry(item).State = EntityState.Modified;</span><br><span class="line">            <span class="comment">//保存到数据库，当此记录数据库不存在时，将抛出异常</span></span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">this</span>.SaveChanges() &gt; <span class="number">0</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/// &lt;summary&gt;</span></span><br><span class="line">        <span class="comment">/// 删除一个对象</span></span><br><span class="line">        <span class="comment">/// &lt;/summary&gt;</span></span><br><span class="line">        <span class="keyword">public</span> virtual <span class="built_in">bool</span> Delete(T item)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="comment">//将对象的状态标记为已删除，此时对象从内存中删除，但是还没有在数据库删除</span></span><br><span class="line">            <span class="keyword">this</span>.Entry(item).State = EntityState.Deleted;</span><br><span class="line">            <span class="comment">//删除数据库对应数据，当此记录数据库不存在时，将抛出异常</span></span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">this</span>.SaveChanges() &gt; <span class="number">0</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">		...........由于代码过多，就不贴全了，可以下载示例程序查看。</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>关于mysql和oracle组件的实现其实和以上示例的MSSQL组件类似，有兴趣可以在文章后面下载示例程序看。</p>
+<h1 id="下一节">下一节</h1><p>下一节将介绍外键和组件调用的示例操作。<br>源码可以点击 <a href="http://pan.baidu.com/s/1i3ZwE5v" target="_blank" rel="external">这里下载</a></p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/DotNet技术/">DotNet技术</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/EF/">EF</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="http://www.knna.me/2015/10/21/使用ORM框架(EF6)基于插件模式封装数据访问层（二）数据访问组件/" data-title="使用ORM框架(EF6)基于插件模式封装数据访问层（二）数据访问组件 | KNNA-个人博客" data-tsina="1661199722" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2015/10/22/使用ORM框架(EF6)基于插件模式封装数据访问层（三）主外键和组件调用/" title="使用ORM框架(EF6)基于插件模式封装数据访问层（三）主外键和组件调用">
+  <strong>上一篇：</strong><br/>
+  <span>
+  使用ORM框架(EF6)基于插件模式封装数据访问层（三）主外键和组件调用</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2015/10/21/使用ORM框架(EF6)基于插件模式封装数据访问层（一）从仓储层开始/"  title="使用ORM框架(EF6)基于插件模式封装数据访问层（一）从仓储层开始">
+ <strong>下一篇：</strong><br/> 
+ <span>使用ORM框架(EF6)基于插件模式封装数据访问层（一）从仓储层开始
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2015/10/21/使用ORM框架(EF6)基于插件模式封装数据访问层（二）数据访问组件/" data-title="使用ORM框架(EF6)基于插件模式封装数据访问层（二）数据访问组件" data-url="http://www.knna.me/2015/10/21/使用ORM框架(EF6)基于插件模式封装数据访问层（二）数据访问组件/"></div>
+</section>
+
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#数据访问组件"><span class="toc-number">1.</span> <span class="toc-text">数据访问组件</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#SqlServer数据库组件"><span class="toc-number">2.</span> <span class="toc-text">SqlServer数据库组件</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#数据访问组件实现"><span class="toc-number">2.1.</span> <span class="toc-text">数据访问组件实现</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#领域模型映射限制"><span class="toc-number">2.2.</span> <span class="toc-text">领域模型映射限制</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#数据映射器"><span class="toc-number">2.3.</span> <span class="toc-text">数据映射器</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#下一节"><span class="toc-number">3.</span> <span class="toc-text">下一节</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/DotNet技术/" title="DotNet技术">DotNet技术<sup>13</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/IOCP高并发框架/" title="IOCP高并发框架">IOCP高并发框架<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ISO8583/" title="ISO8583">ISO8583<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Oracle/" title="Oracle">Oracle<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/PowerDesigner/" title="PowerDesigner">PowerDesigner<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客搭建/" title="博客搭建">博客搭建<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/虚拟机/" title="虚拟机">虚拟机<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/阅读/" title="阅读">阅读<sup>2</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/Oracle/" title="Oracle">Oracle<sup>11</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/PLSQL/" title="PLSQL">PLSQL<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/WPF/" title="WPF">WPF<sup>5</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/EF/" title="EF">EF<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Oracle虚拟机/" title="Oracle虚拟机">Oracle虚拟机<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ISO8583/" title="ISO8583">ISO8583<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/IOCP/" title="IOCP">IOCP<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/模板/" title="模板">模板<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/自定义控件/" title="自定义控件">自定义控件<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Socket/" title="Socket">Socket<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Mahapps-Metro/" title="Mahapps.Metro">Mahapps.Metro<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/MVVM/" title="MVVM">MVVM<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/PowerDesigner/" title="PowerDesigner">PowerDesigner<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/领域驱动设计/" title="领域驱动设计">领域驱动设计<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/人生就是一场突如其来的旅行/" title="人生就是一场突如其来的旅行">人生就是一场突如其来的旅行<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Oracle问题/" title="Oracle问题">Oracle问题<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/反射/" title="反射">反射<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/GitHub/" title="GitHub">GitHub<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Log4net/" title="Log4net">Log4net<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="http://www.knna.me" target="_blank" title="欢迎互换外链">欢迎互换外链</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.wxzzz.com" target="_blank" title="王旭博客">王旭博客</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+  <div class="weiboshow">
+  <p class="asidetitle">新浪微博</p>
+    <iframe width="100%" height="300" class="share_self"  frameborder="0" scrolling="no" src="http://widget.weibo.com/weiboshow/index.php?language=&width=0&height=300&fansRow=2&ptype=1&speed=0&skin=1&isTitle=1&noborder=1&isWeibo=1&isFans=1&uid=1661199722&verifier=3b01a22b&dpc=1"></iframe>
+</div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<section class="info">
+		<p> 	今天拥有的东西，可能恰恰是阻碍你前行的包袱，  <br/>
+			放下包袱，不是失去，而是一次新的开始！</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		<a href="http://weibo.com/1661199722" target="_blank" class="icon-weibo" title="微博"></a>
+		
+		
+		<a href="https://github.com/knna" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		<a href="https://twitter.com/knnapan" target="_blank" class="icon-twitter" title="twitter"></a>
+		
+		
+		
+		
+		
+		
+		
+	</div>
+			
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2015 
+		
+		<a href="/about" target="_blank" title="KNNA">KNNA</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<div class="hoverqrcode clearfix"></div>',
+  '<a class="overlay" id="qrcode"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+
+  $('.hoverqrcode').hide();
+
+  var myWidth = 0;
+  function updatehoverqrcode(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+    var qrsize = myWidth > 1024 ? 200:100;
+    var options = {render: 'image', size: qrsize, fill: '#2ca6cb', text: url, radius: 0.5, quiet: 1};
+    var p = $('.article-share-qrcode').position();
+    $('.hoverqrcode').empty().css('width', qrsize).css('height', qrsize)
+                          .css('left', p.left-qrsize/2+20).css('top', p.top-qrsize-10)
+                          .qrcode(options);
+  };
+  $(window).resize(function(){
+    $('.hoverqrcode').hide();
+  });
+  $('.article-share-qrcode').click(function(){
+    updatehoverqrcode();
+    $('.hoverqrcode').toggle();
+  });
+  $('.article-share-qrcode').hover(function(){}, function(){
+      $('.hoverqrcode').hide();
+  });
+});   
+</script>
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"KNNA"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F28572b2f7a37d925fcb70c7147b2cac9' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="返回顶部"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<script>
+var option = {
+  engineKey: '4fcfbbd7e56708fd8651'
+};
+(function(w,d,t,u,n,s,e){
+  s = d.createElement(t);
+  s.src = u;
+  s.async = 1;
+  w[n] = function(r){
+    w[n].opts = r;
+  };
+  e = d.getElementsByTagName(t)[0];
+  e.parentNode.insertBefore(s, e);
+})(window,document,'script','//tinysou-cdn.b0.upaiyun.com/ts.js','_ts');
+_ts(option);
+</script>
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

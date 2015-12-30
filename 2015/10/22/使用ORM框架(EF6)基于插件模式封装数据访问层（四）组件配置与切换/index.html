@@ -1,0 +1,638 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>使用ORM框架(EF6)基于插件模式封装数据访问层（四）组件配置与切换 | KNNA-个人博客</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="KNNA">
+    
+
+    
+    <meta name="description" content="组件配置每个组件使用的数据库不同，在应程序的配置文件中的配置也各不相同。注意：在使用其中一个数据库配置时，一定要将其他数据库的配置信息全部注释掉，否则在加载配置信息时会出错。在后面会详细介绍如何配置切换数据组件。
+数据库连接字符串在配置文件中需要为数据库提供相应的链接字符串，当然也可以在代码中写死，一般我是配置的。我贴出用到的这三个数据库连接字符串xml123456789101112&amp;lt;!--">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用ORM框架(EF6)基于插件模式封装数据访问层（四）组件配置与切换">
+<meta property="og:url" content="http://www.knna.me/2015/10/22/使用ORM框架(EF6)基于插件模式封装数据访问层（四）组件配置与切换/index.html">
+<meta property="og:site_name" content="KNNA-个人博客">
+<meta property="og:description" content="组件配置每个组件使用的数据库不同，在应程序的配置文件中的配置也各不相同。注意：在使用其中一个数据库配置时，一定要将其他数据库的配置信息全部注释掉，否则在加载配置信息时会出错。在后面会详细介绍如何配置切换数据组件。
+数据库连接字符串在配置文件中需要为数据库提供相应的链接字符串，当然也可以在代码中写死，一般我是配置的。我贴出用到的这三个数据库连接字符串xml123456789101112&amp;lt;!--">
+<meta property="og:updated_time" content="2015-12-30T05:43:24.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="使用ORM框架(EF6)基于插件模式封装数据访问层（四）组件配置与切换">
+<meta name="twitter:description" content="组件配置每个组件使用的数据库不同，在应程序的配置文件中的配置也各不相同。注意：在使用其中一个数据库配置时，一定要将其他数据库的配置信息全部注释掉，否则在加载配置信息时会出错。在后面会详细介绍如何配置切换数据组件。
+数据库连接字符串在配置文件中需要为数据库提供相应的链接字符串，当然也可以在代码中写死，一般我是配置的。我贴出用到的这三个数据库连接字符串xml123456789101112&amp;lt;!--">
+<meta name="twitter:creator" content="@knnapan">
+
+    
+    <link rel="alternative" href="/atom.xml" title="KNNA-个人博客" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+</head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.png" alt="KNNA-个人博客" title="KNNA-个人博客"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="KNNA-个人博客">KNNA-个人博客</a></h1>
+				<h2 class="blog-motto">.NET Developer</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">首页</a></li>
+					
+						<li><a href="/archives">文章</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+ 					
+						<form class="search">
+							<label>Search</label>
+						<input type="text" id="ts-search-input" name="q" size="30" placeholder="搜索"><br>
+						</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2015/10/22/使用ORM框架(EF6)基于插件模式封装数据访问层（四）组件配置与切换/" title="使用ORM框架(EF6)基于插件模式封装数据访问层（四）组件配置与切换" itemprop="url">使用ORM框架(EF6)基于插件模式封装数据访问层（四）组件配置与切换</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="KNNA" target="_blank" itemprop="author">KNNA</a>
+		
+  <p class="article-time">
+    <time datetime="2015-10-22T11:48:58.000Z" itemprop="datePublished"> 发表于 2015-10-22</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		
+			<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#组件配置"><span class="toc-number">1.</span> <span class="toc-text">组件配置</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#数据库连接字符串"><span class="toc-number">1.1.</span> <span class="toc-text">数据库连接字符串</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#MSSQL数据库组件"><span class="toc-number">1.2.</span> <span class="toc-text">MSSQL数据库组件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Oracle数据库组件"><span class="toc-number">1.3.</span> <span class="toc-text">Oracle数据库组件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Mysql数据库组件"><span class="toc-number">1.4.</span> <span class="toc-text">Mysql数据库组件</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#组件切换"><span class="toc-number">2.</span> <span class="toc-text">组件切换</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#引用创建"><span class="toc-number">2.1.</span> <span class="toc-text">引用创建</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#控制反转"><span class="toc-number">2.2.</span> <span class="toc-text">控制反转</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#代码实现"><span class="toc-number">2.3.</span> <span class="toc-text">代码实现</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#DB_First和Code_First切换"><span class="toc-number">3.</span> <span class="toc-text">DB First和Code First切换</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#结束"><span class="toc-number">4.</span> <span class="toc-text">结束</span></a></li></ol>
+		
+		</div>
+		
+		<h1 id="组件配置">组件配置</h1><p>每个组件使用的数据库不同，在应程序的配置文件中的配置也各不相同。<br>注意：在使用其中一个数据库配置时，一定要将其他数据库的配置信息全部注释掉，否则在加载配置信息时会出错。在后面会详细介绍如何配置切换数据组件。</p>
+<h2 id="数据库连接字符串">数据库连接字符串</h2><p>在配置文件中需要为数据库提供相应的链接字符串，当然也可以在代码中写死，一般我是配置的。<br>我贴出用到的这三个数据库连接字符串<br>xml<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!--连接字符串配置--&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="title">connectionStrings</span>&gt;</span></span><br><span class="line">  <span class="comment">&lt;!--MSSQL连接字符串--&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="title">add</span> <span class="attribute">name</span>=<span class="value">"SqlConnectionString"</span> <span class="attribute">connectionString</span>=<span class="value">"Data Source=192.168.0.109; Database=APPFrameworkStudy;</span><br><span class="line">  User ID=sa; Password=123456; MultipleActiveResultSets=True"</span> <span class="attribute">providerName</span>=<span class="value">"System.Data.SqlClient"</span> /&gt;</span></span><br><span class="line">  </span><br><span class="line">  <span class="comment">&lt;!--Oracle连接字符串--&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="title">add</span> <span class="attribute">name</span>=<span class="value">"OracleConnectionString"</span> <span class="attribute">providerName</span>=<span class="value">"Oracle.ManagedDataAccess.Client"</span> <span class="attribute">connectionString</span>=<span class="value">"Data Source=(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST=192.168.1.248)(PORT=1522)))</span><br><span class="line">       (CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=mbfe)));User Id=mbfeuser;Password=mbfeuser2014"</span> /&gt;</span></span><br><span class="line">  <span class="comment">&lt;!--MySQL连接字符串--&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="title">add</span> <span class="attribute">name</span>=<span class="value">"MySqlConnectionString"</span> <span class="attribute">connectionString</span>=<span class="value">"Data Source=192.168.0.109;port=3306;Initial Catalog=APPFrameworkStudy;user id=root;password=root;"</span> <span class="attribute">providerName</span>=<span class="value">"MySql.Data.MySqlClient"</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="title">connectionStrings</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<h2 id="MSSQL数据库组件">MSSQL数据库组件</h2><p>SSQL因为是微软自家的产品，所以安装好EF后默认就有了数据库的链接驱动，并且配置默认就是MSSQL链接，只需修改配置文件中的链接字符串即可连接。</p>
+<h2 id="Oracle数据库组件">Oracle数据库组件</h2><p>在.NET中想访问Oracle数据库，需要下载相关的驱动插件，在第一章创建项目时已经安装，可以回顾查看。安装好插件以后，需要打开配置文件进行配置，如下：<br>在配置文件的configuration根节点下创建四个子节点：configSections，entityFramework，system.data，runtime。<br>注意第一个configSections节点必须是根节点的第一个子节点，四个节点配置如下：<br>xml<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="title">configSections</span>&gt;</span></span><br><span class="line">  <span class="comment">&lt;!--Oracle访问配置1--&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="title">section</span> <span class="attribute">name</span>=<span class="value">"Oracle.ManagedDataAccess.Client"</span> <span class="attribute">type</span>=<span class="value">"OracleInternal.Common.ODPMSectionHandler, </span><br><span class="line">           Oracle.ManagedDataAccess, Version=4.121.2.0, Culture=neutral, PublicKeyToken=89b483f429c47342"</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="title">section</span> <span class="attribute">name</span>=<span class="value">"entityFramework"</span> <span class="attribute">type</span>=<span class="value">"System.Data.Entity.Internal.ConfigFile.EntityFrameworkSection, </span><br><span class="line">           EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"</span> <span class="attribute">requirePermission</span>=<span class="value">"false"</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="title">configSections</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!--Oracle访问配置2--&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="title">entityFramework</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="title">defaultConnectionFactory</span> <span class="attribute">type</span>=<span class="value">"System.Data.Entity.Infrastructure.LocalDbConnectionFactory, EntityFramework"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="title">parameters</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="title">parameter</span> <span class="attribute">value</span>=<span class="value">"v11.1"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="title">parameters</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="title">defaultConnectionFactory</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="title">providers</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="title">provider</span> <span class="attribute">invariantName</span>=<span class="value">"Oracle.ManagedDataAccess.Client"</span> <span class="attribute">type</span>=<span class="value">"Oracle.ManagedDataAccess.EntityFramework.EFOracleProviderServices, Oracle.ManagedDataAccess.EntityFramework, Version=6.121.2.0,         Culture=neutral, PublicKeyToken=89b483f429c47342"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="title">provider</span> <span class="attribute">invariantName</span>=<span class="value">"System.Data.SqlClient"</span> <span class="attribute">type</span>=<span class="value">"System.Data.Entity.SqlServer.SqlProviderServices, EntityFramework.SqlServer"</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="title">providers</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="title">entityFramework</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!--Oracle访问配置3--&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="title">system.data</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="title">DbProviderFactories</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="title">remove</span> <span class="attribute">invariant</span>=<span class="value">"Oracle.ManagedDataAccess.Client"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="title">add</span> <span class="attribute">name</span>=<span class="value">"ODP.NET, Managed Driver"</span> <span class="attribute">invariant</span>=<span class="value">"Oracle.ManagedDataAccess.Client"</span> <span class="attribute">description</span>=<span class="value">"Oracle Data Provider for .NET, Managed Driver"</span> <span class="attribute">type</span>=<span class="value">"Oracle.ManagedDataAccess.Client.OracleClientFactory, Oracle.ManagedDataAccess, Version=4.121.2.0, Culture=neutral, PublicKeyToken=89b483f429c47342"</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="title">DbProviderFactories</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="title">system.data</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!--Oracle访问配置4--&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="title">runtime</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="title">assemblyBinding</span> <span class="attribute">xmlns</span>=<span class="value">"urn:schemas-microsoft-com:asm.v1"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="title">dependentAssembly</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="title">publisherPolicy</span> <span class="attribute">apply</span>=<span class="value">"no"</span> /&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="title">assemblyIdentity</span> <span class="attribute">name</span>=<span class="value">"Oracle.ManagedDataAccess"</span> <span class="attribute">publicKeyToken</span>=<span class="value">"89b483f429c47342"</span> <span class="attribute">culture</span>=<span class="value">"neutral"</span> /&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="title">bindingRedirect</span> <span class="attribute">oldVersion</span>=<span class="value">"4.121.0.0 - 4.65535.65535.65535"</span> <span class="attribute">newVersion</span>=<span class="value">"4.121.2.0"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="title">dependentAssembly</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="title">assemblyBinding</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="title">runtime</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<p>驱动配置完成后，继续配置数据库的链接字符串即可。</p>
+<h2 id="Mysql数据库组件">Mysql数据库组件</h2><p>和Oracle数据库一样，需要下载mysql数据库的支持驱动才能进行连接，在第一章创建项目时已经安装，可以回顾查看。安装好插件以后，需要打开配置文件进行相关配置。<br>在配置文件的根节点中创建entityFramework 节点，配置如下：<br>xml<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!--Mysql访问配置--&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="title">entityFramework</span> <span class="attribute">codeConfigurationType</span>=<span class="value">"MySql.Data.Entity.MySqlEFConfiguration, MySql.Data.Entity.EF6"</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="title">defaultConnectionFactory</span> <span class="attribute">type</span>=<span class="value">"System.Data.Entity.Infrastructure.SqlConnectionFactory, EntityFramework"</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="title">providers</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="title">provider</span> <span class="attribute">invariantName</span>=<span class="value">"MySql.Data.MySqlClient"</span> <span class="attribute">type</span>=<span class="value">"MySql.Data.MySqlClient.MySqlProviderServices, MySql.Data.Entity.EF6"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="title">provider</span> <span class="attribute">invariantName</span>=<span class="value">"System.Data.SqlClient"</span> <span class="attribute">type</span>=<span class="value">"System.Data.Entity.SqlServer.SqlProviderServices, EntityFramework.SqlServer"</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="title">providers</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="title">entityFramework</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<p>mysql驱动配置完成后，继续配置数据库的链接字符串即可。</p>
+<h1 id="组件切换">组件切换</h1><p>在服务层中创建了一个简单工厂，并提供方法用于返回当前配置的数据组件对象接口。在方法中返回数据组件有两种方式：引用创建和控制反转。<br>我使用的是控制反转方式，方法后半部分被注释的代码即引用创建方式的示例代码。</p>
+<h2 id="引用创建">引用创建</h2><p>这是最简单也是最直观的方式，直接引用需要的组件，实例化组件的数据上下文对象，并转换为仓储接口即可。<br>美中不足就是需要引用组件项目，造成一点耦合，并且在切换数据组件时需要重新编译服务层代码。</p>
+<h2 id="控制反转">控制反转</h2><p>使用控制反转方式可以将服务层与数据组件层完全解耦。<br>控制反转的大致原理就是读取配置文件中的信息，并根据映射关系使用反射来创建对象实例。挺简单的，我们自己都能写了对吧，不过微软已经封装的很好，我们就不用麻烦了。<br>首先打开nuget管理器下载微软的控制反转插件：unity插件和它的依赖插件CommonServiceLocator。<br>安装完成后打开配置文件，在根节点下创建configSections和unity两个子节点，节点配置如下：<br>xml<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">  <span class="tag">&lt;<span class="title">configSections</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!--数据访问工厂组件控制反转配置1--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="title">section</span> <span class="attribute">name</span>=<span class="value">"unity"</span> <span class="attribute">type</span>=<span class="value">"Microsoft.Practices.Unity.Configuration.UnityConfigurationSection,Microsoft.Practices.Unity.Configuration"</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="title">configSections</span>&gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">&lt;!--数据访问工厂组件控制反转配置2--&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="title">unity</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="title">containers</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="title">container</span> <span class="attribute">name</span>=<span class="value">"defaultContainer"</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="title">types</span>&gt;</span></span><br><span class="line">          <span class="comment">&lt;!--Mysql数据访问组件--&gt;</span></span><br><span class="line">          <span class="comment">&lt;!--&lt;register type="APPFrameworkStudy.Repository.IDataContext,APPFrameworkStudy.Repository"</span><br><span class="line">                mapTo="APPFrameworkStudy.MySql.MySqlDataContext,APPFrameworkStudy.MySql"&gt;&lt;/register&gt;--&gt;</span></span><br><span class="line">          <span class="comment">&lt;!--Oracle数据访问组件--&gt;</span></span><br><span class="line">          <span class="comment">&lt;!--&lt;register type="APPFrameworkStudy.Repository.IDataContext,APPFrameworkStudy.Repository"</span><br><span class="line">                         mapTo="APPFrameworkStudy.DAL.Oracle.OracleDataContext,APPFrameworkStudy.DAL.Oracle"&gt;&lt;/register&gt;--&gt;</span></span><br><span class="line">            <span class="comment">&lt;!--MSSQL数据访问组件--&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="title">register</span> <span class="attribute">type</span>=<span class="value">"APPFrameworkStudy.Repository.IDataContext,APPFrameworkStudy.Repository"</span></span><br><span class="line"><span class="attribute">mapTo</span>=<span class="value">"APPFrameworkStudy.DAL.SqlServer.SqlServerDataContext,APPFrameworkStudy.DAL.SqlServer"</span>&gt;</span><span class="tag">&lt;/<span class="title">register</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="title">types</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="title">container</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="title">containers</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="title">unity</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<p>我在unity节点中配置了三个数据访问组件，但只能启用一个，未启用的组件映射配置应该注释掉。比如现在当前的配置中，我启用了MSSQL数据访问组件的配置。<br>在数据组件工厂类中，使用控制反转时，unity读取配置文件，并找到IDataContext接口需要实例化的对象是APPFrameworkStudy.DAL.SqlServer.SqlServerDataContext。<br>随即开始创建此对象实例并转换为IDataContext接口返回给调用者。<br>注意在注册节点register 中，type属性表示需要返回的对象类型，紧跟着是这个对象类型所在的项目名称；mapto属性表示前者需要对应实例化的对象，同样紧跟着此对象类型所在的项目名称。<br>当我们需要对数据组件进行切换的时候，需要做一下几个操作：</p>
+<blockquote>
+<ul>
+<li>打开配置文件并配置unity中的register 为需要的组件映射，将其他组件映射注释掉。</li>
+<li>按照组件配置中的介绍，配置当前组件所需的信息，将其他数据库连接的配置信息注释掉。</li>
+<li>配置链接字符串。</li>
+<li>完成配置，下次启动程序就会调用新的数据组件。</li>
+</ul>
+</blockquote>
+<h2 id="代码实现">代码实现</h2><p>数据组件工厂类DalFactory代码如下：<br>cs<figure class="highlight crystal"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line">/<span class="regexp">//</span> &lt;summary&gt;</span><br><span class="line"><span class="regexp">//</span><span class="regexp">/ 数据组件工厂类</span><br><span class="line">/</span><span class="regexp">//</span> &lt;<span class="regexp">/summary&gt;</span><br><span class="line">public class DalFactory</span><br><span class="line">&#123;</span><br><span class="line">    private static IDataContext _idataContext;</span><br><span class="line"></span><br><span class="line">    static DalFactory()</span><br><span class="line">    &#123;</span><br><span class="line">        /</span><span class="regexp">//</span><span class="regexp">/在这里切换底层数据库组件</span><br><span class="line"></span><br><span class="line">        /</span><span class="regexp">/方法一，使用微软的Unity工具和配置文件进行控制反转-依赖注入。</span><br><span class="line">        /</span><span class="regexp">/若出现初始化错误，可能是因为解耦后没有引用项目，DLL文件没有自动拷贝到执行目录</span><br><span class="line">        /</span><span class="regexp">/实例化容器类.</span><br><span class="line">        UnityContainer container = new UnityContainer();</span><br><span class="line">        /</span><span class="regexp">/绑定配置文件&lt;unity&gt;节点中的操作信息</span><br><span class="line">        UnityConfigurationSection section = (UnityConfigurationSection)ConfigurationManager.GetSection("unity");</span><br><span class="line">        section.Configure(container, "defaultContainer");</span><br><span class="line">        /</span><span class="regexp">/解析数据访问组件</span><br><span class="line">        _idataContext = container.Resolve&lt;IDataContext&gt;();</span><br><span class="line"></span><br><span class="line">        /</span><span class="regexp">/方法二，直接引用相关数据访问组件，直接实例化</span><br><span class="line">        /</span><span class="regexp">/MSSQL数据库</span><br><span class="line">        /</span><span class="regexp">/_idataContext = new SqlServerDataContext();</span><br><span class="line"></span><br><span class="line">        /</span><span class="regexp">/Oracle数据库</span><br><span class="line">        /</span><span class="regexp">/_idataContext = new OracleDataContext();</span><br><span class="line"></span><br><span class="line">        /</span><span class="regexp">/mysql数据库</span><br><span class="line">        /</span><span class="regexp">/_idataContext = new APPFrameworkStudy.MySql.MySqlDataContext();</span><br><span class="line"></span><br><span class="line">        /</span><span class="regexp">//</span><span class="regexp">//</span><span class="regexp">//</span><span class="regexp">//</span><span class="regexp">//</span><span class="regexp">//</span><span class="regexp">/数据组件初始化完成/</span><span class="regexp">//</span><span class="regexp">//</span><span class="regexp">//</span><span class="regexp">//</span><span class="regexp">//</span><span class="regexp">//</span><span class="regexp">//</span><span class="regexp">//</span><span class="regexp">//</span><span class="regexp">//</span><span class="regexp">//</span></span><br><span class="line"></span><br><span class="line">        /<span class="regexp">/如果是DB First模式，则启用以下代码进行模型匹配。</span><br><span class="line">        _idataContext.DBFirstCheck();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    /</span><span class="regexp">//</span> &lt;summary&gt;</span><br><span class="line">    <span class="regexp">//</span><span class="regexp">/ 数据访问对象</span><br><span class="line">    /</span><span class="regexp">//</span> &lt;<span class="regexp">/summary&gt;</span><br><span class="line">    public static IDataContext DataContext</span><br><span class="line">    &#123;</span><br><span class="line">        get &#123; return _idataContext; &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span></span><br></pre></td></tr></table></figure></p>
+<h1 id="DB_First和Code_First切换">DB First和Code First切换</h1><p>在我们文章的示例中一直用的是Code First模式，即相关的模型代码发生改变，就会在运行时自动重建数据库。<br>DB First则是以已有数据库为准，程序会在运行时检查模型代码发现的改变，若改变，则提示异常，不会修改数据库。但是在数据库不存在的情况下会直接创建。<br>DB First模式下的检查代码在数据访问组件中重写基类DBFirstCheck抽象方法实现，代码如下：<br>cs<figure class="highlight cs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;summary&gt;</span></span></span><br><span class="line"><span class="comment"><span class="xmlDocTag">///</span> MSSQL数据访问组件对象</span></span><br><span class="line"><span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;/summary&gt;</span></span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">SqlServerDataContext</span> : <span class="title">BaseDataContext</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;summary&gt;</span></span></span><br><span class="line">    <span class="comment"><span class="xmlDocTag">///</span> 数据库优先模式下的检查程序</span></span><br><span class="line">    <span class="comment"><span class="xmlDocTag">///</span> <span class="xmlDocTag">&lt;/summary&gt;</span></span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">override</span> <span class="keyword">void</span> <span class="title">DBFirstCheck</span>(<span class="params"></span>)</span><br><span class="line">    </span>&#123;</span><br><span class="line">        <span class="comment">//采用DB First模式开发，则启用这几行代码，他会检查模型的变化并与数据库结构匹配，数据库不存在则创建。</span></span><br><span class="line">        <span class="comment">//已存在但不匹配，则会提示异常。而不像code first模式中不匹配直接删除数据库重建。</span></span><br><span class="line">        <span class="comment">//这里可以使用任意的领域模型类型作为泛型参数，不管用哪个类型都会匹配整个模型</span></span><br><span class="line"></span><br><span class="line">        System.Data.Entity.CreateDatabaseIfNotExists&lt;OrderDataMapper&gt; dbset = <span class="keyword">new</span> System.Data.Entity.CreateDatabaseIfNotExists&lt;OrderDataMapper&gt;();</span><br><span class="line">        OrderDataMapper mapper = <span class="keyword">default</span>(OrderDataMapper);</span><br><span class="line">        dbset.InitializeDatabase(mapper);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">override</span> IDataMapper&lt;T&gt; GetDataMapper&lt;T&gt;()</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">//每次调用一个方法都实例化一个数据访问对象，因为EF数据访问对象不是为长时间使用准备的</span></span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">typeof</span>(T) == <span class="keyword">typeof</span>(Order))</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">return</span> (IDataMapper&lt;T&gt;)<span class="keyword">new</span> OrderDataMapper();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="function"><span class="keyword">else</span> <span class="title">if</span> (<span class="params"><span class="keyword">typeof</span>(T</span>) </span>== <span class="keyword">typeof</span>(Product))</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">return</span> (IDataMapper&lt;T&gt;)<span class="keyword">new</span> ProductDataMapper();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="comment">//暂不支持其他类型</span></span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> Exception(<span class="string">"unsupported type"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>在需要进入DB First开发模式时，只需在数据组件工厂类提供的方法中调用DBFirstCheck即可，这时就会检查代码模型与数据库模型是否匹配。<br>调用实现代码示例可以查看上面贴出的DalFactory代码。</p>
+<h1 id="结束">结束</h1><p>《使用ORM框架(EF6)基于插件模式封装数据访问层》系列文章结束了，其中不免一些错误希望指正。<br>还有很多描述和设计不全面的地方，可以下载源码研究。<br>后续会出一个关于领域驱动模型设计的文章，介绍一下我对此模型的理解。<br>本系列源码可以点击 <a href="http://pan.baidu.com/s/1i3ZwE5v" target="_blank" rel="external">这里下载</a></p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/DotNet技术/">DotNet技术</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/EF/">EF</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="http://www.knna.me/2015/10/22/使用ORM框架(EF6)基于插件模式封装数据访问层（四）组件配置与切换/" data-title="使用ORM框架(EF6)基于插件模式封装数据访问层（四）组件配置与切换 | KNNA-个人博客" data-tsina="1661199722" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2015/10/26/领域驱动模型（DDD）的理解与实例/" title="领域驱动模型（DDD）的理解与实例">
+  <strong>上一篇：</strong><br/>
+  <span>
+  领域驱动模型（DDD）的理解与实例</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2015/10/22/使用ORM框架(EF6)基于插件模式封装数据访问层（三）主外键和组件调用/"  title="使用ORM框架(EF6)基于插件模式封装数据访问层（三）主外键和组件调用">
+ <strong>下一篇：</strong><br/> 
+ <span>使用ORM框架(EF6)基于插件模式封装数据访问层（三）主外键和组件调用
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2015/10/22/使用ORM框架(EF6)基于插件模式封装数据访问层（四）组件配置与切换/" data-title="使用ORM框架(EF6)基于插件模式封装数据访问层（四）组件配置与切换" data-url="http://www.knna.me/2015/10/22/使用ORM框架(EF6)基于插件模式封装数据访问层（四）组件配置与切换/"></div>
+</section>
+
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#组件配置"><span class="toc-number">1.</span> <span class="toc-text">组件配置</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#数据库连接字符串"><span class="toc-number">1.1.</span> <span class="toc-text">数据库连接字符串</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#MSSQL数据库组件"><span class="toc-number">1.2.</span> <span class="toc-text">MSSQL数据库组件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Oracle数据库组件"><span class="toc-number">1.3.</span> <span class="toc-text">Oracle数据库组件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Mysql数据库组件"><span class="toc-number">1.4.</span> <span class="toc-text">Mysql数据库组件</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#组件切换"><span class="toc-number">2.</span> <span class="toc-text">组件切换</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#引用创建"><span class="toc-number">2.1.</span> <span class="toc-text">引用创建</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#控制反转"><span class="toc-number">2.2.</span> <span class="toc-text">控制反转</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#代码实现"><span class="toc-number">2.3.</span> <span class="toc-text">代码实现</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#DB_First和Code_First切换"><span class="toc-number">3.</span> <span class="toc-text">DB First和Code First切换</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#结束"><span class="toc-number">4.</span> <span class="toc-text">结束</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/DotNet技术/" title="DotNet技术">DotNet技术<sup>13</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/IOCP高并发框架/" title="IOCP高并发框架">IOCP高并发框架<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ISO8583/" title="ISO8583">ISO8583<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Oracle/" title="Oracle">Oracle<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/PowerDesigner/" title="PowerDesigner">PowerDesigner<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客搭建/" title="博客搭建">博客搭建<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/虚拟机/" title="虚拟机">虚拟机<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/阅读/" title="阅读">阅读<sup>2</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/Oracle/" title="Oracle">Oracle<sup>11</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/PLSQL/" title="PLSQL">PLSQL<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/WPF/" title="WPF">WPF<sup>5</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/EF/" title="EF">EF<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Oracle虚拟机/" title="Oracle虚拟机">Oracle虚拟机<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ISO8583/" title="ISO8583">ISO8583<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/IOCP/" title="IOCP">IOCP<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/模板/" title="模板">模板<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/自定义控件/" title="自定义控件">自定义控件<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Socket/" title="Socket">Socket<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Mahapps-Metro/" title="Mahapps.Metro">Mahapps.Metro<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/MVVM/" title="MVVM">MVVM<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/PowerDesigner/" title="PowerDesigner">PowerDesigner<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/领域驱动设计/" title="领域驱动设计">领域驱动设计<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/人生就是一场突如其来的旅行/" title="人生就是一场突如其来的旅行">人生就是一场突如其来的旅行<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Oracle问题/" title="Oracle问题">Oracle问题<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/反射/" title="反射">反射<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/GitHub/" title="GitHub">GitHub<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Log4net/" title="Log4net">Log4net<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="http://www.knna.me" target="_blank" title="欢迎互换外链">欢迎互换外链</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.wxzzz.com" target="_blank" title="王旭博客">王旭博客</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+  <div class="weiboshow">
+  <p class="asidetitle">新浪微博</p>
+    <iframe width="100%" height="300" class="share_self"  frameborder="0" scrolling="no" src="http://widget.weibo.com/weiboshow/index.php?language=&width=0&height=300&fansRow=2&ptype=1&speed=0&skin=1&isTitle=1&noborder=1&isWeibo=1&isFans=1&uid=1661199722&verifier=3b01a22b&dpc=1"></iframe>
+</div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<section class="info">
+		<p> 	今天拥有的东西，可能恰恰是阻碍你前行的包袱，  <br/>
+			放下包袱，不是失去，而是一次新的开始！</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		<a href="http://weibo.com/1661199722" target="_blank" class="icon-weibo" title="微博"></a>
+		
+		
+		<a href="https://github.com/knna" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		<a href="https://twitter.com/knnapan" target="_blank" class="icon-twitter" title="twitter"></a>
+		
+		
+		
+		
+		
+		
+		
+	</div>
+			
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2015 
+		
+		<a href="/about" target="_blank" title="KNNA">KNNA</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<div class="hoverqrcode clearfix"></div>',
+  '<a class="overlay" id="qrcode"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+
+  $('.hoverqrcode').hide();
+
+  var myWidth = 0;
+  function updatehoverqrcode(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+    var qrsize = myWidth > 1024 ? 200:100;
+    var options = {render: 'image', size: qrsize, fill: '#2ca6cb', text: url, radius: 0.5, quiet: 1};
+    var p = $('.article-share-qrcode').position();
+    $('.hoverqrcode').empty().css('width', qrsize).css('height', qrsize)
+                          .css('left', p.left-qrsize/2+20).css('top', p.top-qrsize-10)
+                          .qrcode(options);
+  };
+  $(window).resize(function(){
+    $('.hoverqrcode').hide();
+  });
+  $('.article-share-qrcode').click(function(){
+    updatehoverqrcode();
+    $('.hoverqrcode').toggle();
+  });
+  $('.article-share-qrcode').hover(function(){}, function(){
+      $('.hoverqrcode').hide();
+  });
+});   
+</script>
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"KNNA"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F28572b2f7a37d925fcb70c7147b2cac9' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="返回顶部"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<script>
+var option = {
+  engineKey: '4fcfbbd7e56708fd8651'
+};
+(function(w,d,t,u,n,s,e){
+  s = d.createElement(t);
+  s.src = u;
+  s.async = 1;
+  w[n] = function(r){
+    w[n].opts = r;
+  };
+  e = d.getElementsByTagName(t)[0];
+  e.parentNode.insertBefore(s, e);
+})(window,document,'script','//tinysou-cdn.b0.upaiyun.com/ts.js','_ts');
+_ts(option);
+</script>
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

@@ -1,0 +1,613 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>ISO8583报文协议 | KNNA-个人博客</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="KNNA">
+    
+
+    
+    <meta name="description" content="通俗简单版本8583是这样的，我举一个简单的例子。以64个域的报文来举例，域是什么我也说不清楚，你可以把它想象为医院放药的抽屉，一个抽屉预先定义好要放什么 东西，比如伟哥，或者感冒冲剂，一般情况下定义放伟哥的抽屉最好永远放伟哥，不要放别的东西，当然你也可以放板蓝根，但这样的话容易出错，也不太规范。数量是这么规定的，有三种情况：首先是定量，也就是说定义好这个抽屉放30瓶伟哥，就放30瓶一瓶也不能多，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ISO8583报文协议">
+<meta property="og:url" content="http://www.knna.me/2015/03/12/ISO8583报文协议/index.html">
+<meta property="og:site_name" content="KNNA-个人博客">
+<meta property="og:description" content="通俗简单版本8583是这样的，我举一个简单的例子。以64个域的报文来举例，域是什么我也说不清楚，你可以把它想象为医院放药的抽屉，一个抽屉预先定义好要放什么 东西，比如伟哥，或者感冒冲剂，一般情况下定义放伟哥的抽屉最好永远放伟哥，不要放别的东西，当然你也可以放板蓝根，但这样的话容易出错，也不太规范。数量是这么规定的，有三种情况：首先是定量，也就是说定义好这个抽屉放30瓶伟哥，就放30瓶一瓶也不能多，">
+<meta property="og:updated_time" content="2015-11-12T02:02:44.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="ISO8583报文协议">
+<meta name="twitter:description" content="通俗简单版本8583是这样的，我举一个简单的例子。以64个域的报文来举例，域是什么我也说不清楚，你可以把它想象为医院放药的抽屉，一个抽屉预先定义好要放什么 东西，比如伟哥，或者感冒冲剂，一般情况下定义放伟哥的抽屉最好永远放伟哥，不要放别的东西，当然你也可以放板蓝根，但这样的话容易出错，也不太规范。数量是这么规定的，有三种情况：首先是定量，也就是说定义好这个抽屉放30瓶伟哥，就放30瓶一瓶也不能多，">
+<meta name="twitter:creator" content="@knnapan">
+
+    
+    <link rel="alternative" href="/atom.xml" title="KNNA-个人博客" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+</head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.png" alt="KNNA-个人博客" title="KNNA-个人博客"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="KNNA-个人博客">KNNA-个人博客</a></h1>
+				<h2 class="blog-motto">.NET Developer</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">首页</a></li>
+					
+						<li><a href="/archives">文章</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+ 					
+						<form class="search">
+							<label>Search</label>
+						<input type="text" id="ts-search-input" name="q" size="30" placeholder="搜索"><br>
+						</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2015/03/12/ISO8583报文协议/" title="ISO8583报文协议" itemprop="url">ISO8583报文协议</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="KNNA" target="_blank" itemprop="author">KNNA</a>
+		
+  <p class="article-time">
+    <time datetime="2015-03-12T07:19:38.000Z" itemprop="datePublished"> 发表于 2015-03-12</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		
+			<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#通俗简单版本"><span class="toc-number">1.</span> <span class="toc-text">通俗简单版本</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">完整的版本</span></a></li></ol>
+		
+		</div>
+		
+		<h2 id="通俗简单版本">通俗简单版本</h2><p>8583是这样的，我举一个简单的例子。以64个域的报文来举例，域是什么我也说不清楚，你可以把它想象为医院放药的抽屉，一个抽屉预先定义好要放什么 东西，比如伟哥，或者感冒冲剂，一般情况下定义放伟哥的抽屉最好永远放伟哥，不要放别的东西，当然你也可以放板蓝根，但这样的话容易出错，也不太规范。数量是这么规定的，有三种情况：首先是定量，也就是说定义好这个抽屉放30瓶伟哥，就放30瓶一瓶也不能多，一瓶也不能少。其次是LLVAR，也就是说用1位字节定义数量，比如0x12表示里头放12瓶，当然你也可以理解为16+2=18瓶。但要是0x12表示12，那0x13就等于13，不要0x12=12 ，0x13=19最后是LLLVAR,是2位字节表示数量，比如 0x01,0x04 = 104域也就是这样的，一共有64个域，每个域预先定义了内容和长度有一个叫做BITMAP的，也就是位图，定义了一个数据包里包含了几个域。举个例子20 00 38 00 00 00 00 34你把它解开，排列一下20 = 0010 000000 = 0000 000038 = 0011 1000依次类推，得到一串数字0010 0000 0000 0000 0011 1000 0000 0000 0000 0000 0000 0000 0000 0000 0011 0100然后从左到右数一下里头含有1的是那几位，上面的例子我们得到3 19 20 21 59 60 62 ,这几位含有1。也就是说接下来的报文包含有这几个域。好了说了那么多，我们来做一个简单的例子比如消费交易，需要上送交易类型，卡号等等，定义如下卡号 第2域 LLVAR BCD 5309987876545342交易类型 第3域 长度6 BCD 900000金额 第4域 长度12 BCD 100分时间 第7域 长度8 BCD 200308022磁道信息 第35域 LLVAR ASCII 1234563磁道信息 第36域 LLLVAR BCD 123456001商户号 第41域 LLVAR ASCII 98765432好了我们现在开始打包，首先按照长度和类型把上面的数据处理一下卡号 165309987876545342交易类型 900000金额 000000000100时间 200308022磁道 063132333435363磁道 0009123456001商户号 083938373635343332接下来我们按照域信息生成位图因为有第2域，所以第二个位置是1，由第三域，所以第三个位置是1，。。。依此类推得到一串数字0111 0010 0000 0000 0000 0000 0000 0000 0011 0000 1000 0000 0000 0000 0000 0000转换过来，就是72 00 00 00 30 80 00 00 这个就是BITMAP了然后把上面的数据按照BITMAP+每个域的内容，依次排列就得到这个包的内容了720000003080000016530998787654534290000000000000010020030802063132333435360009123456001083938373635343332前头再加上TPDU和MSGID就是最后的数据包。&nbsp;</p><h2>完整的版本</h2>我刚进入金融行业时，就知道了IS08583报文协议，我想可能我还没进入这个行业都已经听过了，可知ISO8583的影响力有多大了。最初刚接触它时， 确实对其中的一些细节概念不是很清晰，对有些地方比较迷惑。鉴于此，我想很多同行也必然会经历同样得阶段，所以我写下本文，以便大家能够少走一些弯路。同 时，我在网上（<a href="http://blog.csdn.net/lysheng/archive/2005/03/03/309914.aspx" target="_blank">http://blog.csdn.net/lysheng/archive/2005/03/03/309914.aspx</a>）写下我要写“全面掌握ISO8583报文”和“符合CEN/XFS（即WOSA/XFS）规范的SP编写”两篇文章时，很多人都询问我什么时候能够写出来，可知许多人是需要了解这方面的知识的，即使我时间不是很多，也得尽量将这两篇文章写出来，给需要的人提供一些参考。如果单纯的讲IS08583那些字段的定义，我觉得没有什么意思，标准中已经对每个字段解释的非常详细了，如果你觉得理解英文版的ISO8583规范有些 困难，网上也有同行为我们翻译好的中文版ISO8583规范，所以我的目的是达到阅读本文后能够对ISO8583知其然，亦知其所以然，使以前基本没有接 触它的人也能够达到掌握ISO8583报文规范。好了，我们该转入正题了。最开始时，金融系统只有IBM这些大的公司来提供设备，象各种主机与终端等。在各个计算机设备之间，需要交换数据。我们知道数据是通过网络来传送的，而在 网络上传送的数据都是基于0或1这样的二进制数据，如果没有对数据进行编码，则这些数据没有人能够理解，属于没有用的数据。起初的X.25、SDLC以及 现在流行的TCP/IP网络协议都提供底层的通讯编码协议，它们解决了最底层的通讯问题，能够将一串字符从一个地方传送到另一个地方。但是，仅仅传送字符 串是没有太大意义的，怎样来解析字符串代表什么内容是非常重要的，否则传送一些“0123abcd”的字符串也是无用的乱码。让我们随着时光回到几十年前的某个时刻，假设我们被推到历史的舞台上，由我们来设计一个通用报文协议，来解决金融系统之间的报文交换，暂且称该协议叫做 ISO8583协议。此时，技术是在不断的前行，当初IBM一支独秀的局面好像已经不妙了，各种大小不一的公司都进入金融行业以求能有所斩获，呈一片百花 齐放的局面。我们怎样来设计一个报文协议，能够将这些如雨后春笋般出现的所有公司都纳入进来，其实也不是一件很简单的事。我们还是先一步步的来考虑吧。金融行业其实涉及到的数据内容并不是成千上万，无法统计，恰恰相反，是比较少的。我们都可以在心底数得过来，象交易类型、帐 号、帐户类型、密码、交易金额、交易手续费、日期时间、商户代码、2磁3磁数据、交易序列号等，把所有能够总结出来的都总结起来不过100个左右的数据。 那我们可以首先简单的设计ISO8583，定义128个字段，将所有能够考虑到的类似上面提到的“帐号”等金融数据类型，按照一个顺序排起来，分别对应 128个字段中的一个字段。每个数据类型占固定的长度，这个顺序和长度我们都事先定义好。这样就简单了，要发送一个报文时，就将128个字段按照顺序接起 来，然后将接起来的整串数据包发送出去。任何金融软件收到ISO8583包后，直接按照我们定义的规范解包即可，因为整个报文的128个字段从哪一位到哪一位代表什么，大家都知道，只要知道你的 数据包是ISO8583包即可，我们都已经定义好了。比如第1个字段是“交易类型”，长度为4位，第2个字段位是“帐号”，为19位等等。接收方就可以先 取4位，再取接着的19位，依次类推，直到整个数据包128个字段都解完为止。其实这种做法真是简单直接，基本上就可以满足需要了。不过我们有几个问题要思考下：1、 我怎么知道每个字段的数据类型呢，是数字还是字符？2、 每个传送的报文都把128个字段都传过去，那网络带宽能够承受得了，有时候我可能只需要其中5个字段，结果多收到了123个无用的字段。3、 如果我某些字段的长度不固定，属于变长怎么办，因为你现在解包是当作数据包每个字段都是固定的，用C语言解包时直接依靠指针取固定长度的一串字符做为一个字段。我们来一一解决这些问题。第一个问题简单，我在定义ISO8583时除了定义每个字段表示什么，还规定其内容是数字或是字符等即可。考虑可能出现的类型不过有以下几种：字母、数 字、特殊字符、年月日等时间、二进制数据。比如我对128个字段中的“商户类型”字段定义其长度是15，同时定义其类型为字母。再精细点，如果“商户类 型”里面的数据同时包括数字和字母呢？那我们就定义其类型为字母也可，为数字也可，即一个字段可以同时属于多个类型。第二个问题稍微复杂点。其本质就是如果我只传128个字段的5个字段，接收方怎么知道我传了哪几个字段给它了。要是我们把剩下的123全部填成0或其他特 殊标识，标明该字段不需要使用？这种处理方法没有半点用处，没有解决网络带宽的本质问题，还是要传128个字段。换个思路，我在报文前面加上个包头，包头里面包含的信息能够让别人知道只传了5个字段。怎样设计这个包头，可以这样，我们用16个字节，即128个<a class="relatedlink" href="http://www.itpub.net/tree/index_339/" target="_blank">bi</a>t（一 个字节等于8bit）来表示128个字段中的某个字段是否存在。每个bit在计算机的二进制里面不是1就是0，如果是1就表示对应的字段在本次报文中存 在，如果是0就是不存在。这样好了，如果别人接收到了ISO8583报文，可以先根据最前面的报文头，就知道紧接着报文头后面的报文有哪些字段，没有哪些 字段了。比如，我要发送5个字段，分别属于128个字段中的第2、3、6、8、9字段，我就可以将128bit的报文头填成 011001011000000000………..，一共128个bit，后面就全是0了。注意其中第2、3、6、8、9位为1，其他都为0。有了这个128bit的报文头，我们就可以只发送需要的5个字段了。怎样组织报文？先放上这128bit，即16个字节的头，然后在头后面放2、3、6、 8、9字段，这些字段紧挨在一起，3和6之间也不需要填上4、5这两个字段了。接收方收到这个报文，它会根据128bit的报文头来解包，它自然知道把第 3个字段取出后，就直接在第3字段的后面取第6个字段，每个字段的长度在ISO8583里面都定义好了，很轻松就把数据包解出来了。这下好了，为了解决上面的第二问题，我们只是在报文中增加了16个字节的数据，就轻松搞定了，我们把这16个字节称为bit map，即位图，用来表示某个位是否存在。不过我们再稍微优化一下，考虑到很多时候报文不需要128个字段这么多，其一半64个字段都不一定能够用完。那 我可以将报文头由128bit减到64bit，只有在需要的时候才把剩下的64bit放到报文里面，这样报文长度不又少了8个字节吗？是个好主意。我们把ISO8583的128个字段中最常见的都放到前64个字段中，那我们可以将处理缩小一倍。这样我一般发送报文时只需发送64bit， 即一个字节的报文头，再加上需要的几个字段就可以了。如果有些报文用到64到128之间的字段呢？这个也好办，我把64bit报文头的第一位bit用来代 表特殊含义，如果该bit为1，则表示64bit后面跟了剩下的64bit报文头；如果第一位bit为0，则表示64bit后面没有跟剩下的64bit报 文头，直接是128个字段中的报文了。那们，接收方会判断一下报头的第一个bit是1还是0，从而知道报文头是64bit还是128bit了，就可以做相 应处理。因为报文头第二个64bit属于有时候有，所以我们叫它Extended bit map扩展位图，相应的报文头最开始的64bit我们叫它Primary bit map主位图。我们直接把扩展位图固定放到128个字段的第一个字段，而主位图每个数据包都有，就强制性放在所有128个字段的前面，并不归入128个字 段中去。第三个问题可以考虑这样解决。比如第2个字段是“帐号”，是不定长的，可能有的银行帐号是19位，有的是17位等。我们定ISO8583规范时可以规定第 2个字段是25位，这下足够将19和17的情况都包含进来，但是如果以后出现了30位的怎么办？那我们现在将字段定为100位。以后超过100位怎么办， 况且如果你只有19位的帐号，我们定义了100位，那81位的数据不是浪费了网络的带宽。看来预先定义一个我们认为比较大的位数是不太好的。我们这样，对于第2个字段“帐号”，在字段的开头加上“帐号”的长度。比如帐号是0123456789，一共10位，我们变成100123456789， 注意前面多了个10，表示后面的10位为帐号。如果你接触过COM里面的BSTR，应该对这种处理比较熟悉了。接收方收到该字段后，它知道ISO8583 规定第2个字段“帐号”是变长的，所以会先取前面的2位出来，获取其值，此时为长度，然后根据该长度值知道应该拷贝该字段后面哪几位数据，才是真正的帐 号。如果你觉得长度如果只有两位最多只能表示99位长，不太够，我们也定义可以允许前面3位都为长度的变长字段，这样就有999位长，应该够了吧。在规范 里面如果我定义某个字段的属性是“LLVAR”，你注意了，其中的LL表示长度，VAR表示后面的数据，两个LL表示两位长，最大是99，如果是三位就是 “LLLVAR”，最大是999。这样看我们定义的ISO8583规范文档时直接根据这几个字母就理解某个变长字段的意思了。该解决的几个问题到这里都解决了，我们来回顾下自己设计的ISO8583规范。其实没有什么，无非是把金融行业可能出现的数据分门别类，排好顺序，接着把 它们连接起来，组成一个报文发送出去而已。其中针对该报文的设计进行了一些优化，引入了bit map位图的概念，也算是一个不错的想法。剩下的工作就简单了，我们就直接收集金融行业可能出现的数据字段类型，分成128个字段类型，如果没有到128个这么多就先保留一些下来，另外考虑到有些人有特殊的要求，我们规定可以将128个字段中的几个字段你自己来定义其内容，也算是一种扩展了。这样，最后我们就得到了ISO8583规范的那张字段描述表了。想要详细的知道每个字段的含义直接对着表看就可以，比较简单。全文完&nbsp;本文系转载（<a id="thread_subject" href="http://www.itpub.net/thread-419521-1-1.html" target="_blank" rel="external">轻松掌握ISO8583报文协议<p></p>
+</a>  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/ISO8583/">ISO8583</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/ISO8583/">ISO8583</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="http://www.knna.me/2015/03/12/ISO8583报文协议/" data-title="ISO8583报文协议 | KNNA-个人博客" data-tsina="1661199722" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2015/03/30/ISO8583报文协议128位域的说明/" title="ISO8583报文协议128位域的说明">
+  <strong>上一篇：</strong><br/>
+  <span>
+  ISO8583报文协议128位域的说明</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2015/03/12/dotNet反射时需要注意的问题/"  title="DotNet反射时需要注意的问题">
+ <strong>下一篇：</strong><br/> 
+ <span>DotNet反射时需要注意的问题
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2015/03/12/ISO8583报文协议/" data-title="ISO8583报文协议" data-url="http://www.knna.me/2015/03/12/ISO8583报文协议/"></div>
+</section>
+
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#通俗简单版本"><span class="toc-number">1.</span> <span class="toc-text">通俗简单版本</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">完整的版本</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/DotNet技术/" title="DotNet技术">DotNet技术<sup>13</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/IOCP高并发框架/" title="IOCP高并发框架">IOCP高并发框架<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/ISO8583/" title="ISO8583">ISO8583<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Oracle/" title="Oracle">Oracle<sup>14</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/PowerDesigner/" title="PowerDesigner">PowerDesigner<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/博客搭建/" title="博客搭建">博客搭建<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/虚拟机/" title="虚拟机">虚拟机<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/阅读/" title="阅读">阅读<sup>2</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/Oracle/" title="Oracle">Oracle<sup>11</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/PLSQL/" title="PLSQL">PLSQL<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/WPF/" title="WPF">WPF<sup>5</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/EF/" title="EF">EF<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Oracle虚拟机/" title="Oracle虚拟机">Oracle虚拟机<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/ISO8583/" title="ISO8583">ISO8583<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/IOCP/" title="IOCP">IOCP<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/模板/" title="模板">模板<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/自定义控件/" title="自定义控件">自定义控件<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Socket/" title="Socket">Socket<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Mahapps-Metro/" title="Mahapps.Metro">Mahapps.Metro<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/MVVM/" title="MVVM">MVVM<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/PowerDesigner/" title="PowerDesigner">PowerDesigner<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/领域驱动设计/" title="领域驱动设计">领域驱动设计<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/人生就是一场突如其来的旅行/" title="人生就是一场突如其来的旅行">人生就是一场突如其来的旅行<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Oracle问题/" title="Oracle问题">Oracle问题<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/反射/" title="反射">反射<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/GitHub/" title="GitHub">GitHub<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Log4net/" title="Log4net">Log4net<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="http://www.knna.me" target="_blank" title="欢迎互换外链">欢迎互换外链</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://www.wxzzz.com" target="_blank" title="王旭博客">王旭博客</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+  <div class="weiboshow">
+  <p class="asidetitle">新浪微博</p>
+    <iframe width="100%" height="300" class="share_self"  frameborder="0" scrolling="no" src="http://widget.weibo.com/weiboshow/index.php?language=&width=0&height=300&fansRow=2&ptype=1&speed=0&skin=1&isTitle=1&noborder=1&isWeibo=1&isFans=1&uid=1661199722&verifier=3b01a22b&dpc=1"></iframe>
+</div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<section class="info">
+		<p> 	今天拥有的东西，可能恰恰是阻碍你前行的包袱，  <br/>
+			放下包袱，不是失去，而是一次新的开始！</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		<a href="http://weibo.com/1661199722" target="_blank" class="icon-weibo" title="微博"></a>
+		
+		
+		<a href="https://github.com/knna" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		<a href="https://twitter.com/knnapan" target="_blank" class="icon-twitter" title="twitter"></a>
+		
+		
+		
+		
+		
+		
+		
+	</div>
+			
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2015 
+		
+		<a href="/about" target="_blank" title="KNNA">KNNA</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<div class="hoverqrcode clearfix"></div>',
+  '<a class="overlay" id="qrcode"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+
+  $('.hoverqrcode').hide();
+
+  var myWidth = 0;
+  function updatehoverqrcode(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+    var qrsize = myWidth > 1024 ? 200:100;
+    var options = {render: 'image', size: qrsize, fill: '#2ca6cb', text: url, radius: 0.5, quiet: 1};
+    var p = $('.article-share-qrcode').position();
+    $('.hoverqrcode').empty().css('width', qrsize).css('height', qrsize)
+                          .css('left', p.left-qrsize/2+20).css('top', p.top-qrsize-10)
+                          .qrcode(options);
+  };
+  $(window).resize(function(){
+    $('.hoverqrcode').hide();
+  });
+  $('.article-share-qrcode').click(function(){
+    updatehoverqrcode();
+    $('.hoverqrcode').toggle();
+  });
+  $('.article-share-qrcode').hover(function(){}, function(){
+      $('.hoverqrcode').hide();
+  });
+});   
+</script>
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"KNNA"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F28572b2f7a37d925fcb70c7147b2cac9' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="返回顶部"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<script>
+var option = {
+  engineKey: '4fcfbbd7e56708fd8651'
+};
+(function(w,d,t,u,n,s,e){
+  s = d.createElement(t);
+  s.src = u;
+  s.async = 1;
+  w[n] = function(r){
+    w[n].opts = r;
+  };
+  e = d.getElementsByTagName(t)[0];
+  e.parentNode.insertBefore(s, e);
+})(window,document,'script','//tinysou-cdn.b0.upaiyun.com/ts.js','_ts');
+_ts(option);
+</script>
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>
