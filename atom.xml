@@ -675,53 +675,70 @@
     <link href="http://www.knna.me/2015/09/09/%E5%9C%A8windows7_64%E7%8E%AF%E5%A2%83%E4%B8%8B%E6%90%AD%E5%BB%BA%E5%9F%BA%E4%BA%8EGithub%E7%9A%84%E9%9D%99%E6%80%81%E5%8D%9A%E5%AE%A2/"/>
     <id>http://www.knna.me/2015/09/09/在windows7_64环境下搭建基于Github的静态博客/</id>
     <published>2015-09-09T01:56:29.000Z</published>
-    <updated>2015-11-18T01:48:06.000Z</updated>
-    <content type="html"><![CDATA[<p></p><h1 id="ready">准备工作</h1><p></p>
-<p></p><h2 id="account">申请账号Github</h2><br><a href="https://github.com/" target="_blank" rel="external">点击这里</a><p></p>
-<p></p><h2 id="createlib">创建存储仓库</h2><br>如图所示点击创建仓库：<br><img src="/images/public/6.jpg" alt="image"><br>输入一个Repository name并点击绿色按钮创建成功。<br><img src="/images/public/7.jpg" alt="image"><p></p>
-<p></p><h2 id="downloadtools">下载工具并安装</h2><p></p>
-<p><ul></ul></p>
-<p><li><a href="http://git-scm.com/download/win" target="_blank" rel="external">下载Git</a><br></li></p>
-<p><li><a href="https://nodejs.org/dist/latest/node-v4.0.0-x64.msi" target="_blank" rel="external">下载Node</a><br></li></p>
-<p><li>安装完成进入下一步。<br></li><br></p>
-<p></p><h1 id="deploy">部署NodeJS和Git</h1><p></p>
-<p><ul></ul></p>
-<p><li>CMD执行：<code>npm install -g hexo</code><br></li></p>
-<p><li>追加Git程序路径到环境变量的PATH：C:\Program Files\Git\cmd;<br></li></p>
-<p><li>在磁盘中创建hexo工作目录，打开CMD，进入此文件夹下，执行后续操作</li></p>
-<p><li>CMD执行：<code>git init</code><br></li></p>
-<p><li>CMD执行：<code>hexo init</code><br></li></p>
-<p><li>CMD执行：<code>git config –global user.email “你的github登陆账号”</code><br></li></p>
-<p><li>CMD执行：<code>git config –global user.name “你的github用户名”</code><br></li></p>
-<p><li>CMD执行：<code>npm install</code><br></li></p>
-<p><li>打开Git Bush 进入hexo目录执行这些代码：<br><code>npm install hexo –save</code><br><code>npm install hexo-server –save</code><br><code>npm install hexo-deployer-git –save</code><br>若需要<code>RSS</code>生成和<code>sitemap</code>生成则需要装两个插件，继续执行以下代码即可安装插件：<br><code>npm install hexo-generator-feed –save</code><br><code>npm install hexo-generator-sitemap –save</code><br></li></p>
-<p><li>如果使用了RSS和sitemap则需要在hexo目录的_config.yml文件中增加以下内容：<br><code>rss: /atom.xml</code><br><code>sitemap: /sitemap.xml</code><br>然后继续在配置文件中设置自己在GitHub上创建的代码仓库路径，我这里是<br><code>deploy:</code><br><code>  type: git</code><br><code>  repository: git@github.com:knna/knna/git</code><br></li></p>
-<p><li>到此本地部署已完成，可以执行:<code>hexo server</code>打开本地服务器，<br>进入<p><a href="http://localhost:4000/" target="_blank" rel="external">http://localhost:4000/</a></p>查看网站是否可用，CTRL + C 关闭服务器。</li><br></p>
-<p></p><h2 id="createssh">创建SSH Key</h2><br>若是现在直接上传会提示错误，需要先创建SHH Key。<br>在Git Bush终端输入：<code>ssh-keygen -t rsa -C “your_email@example.com”</code><br>如果执行成功。返回<br>Generating public/private rsa key pair.<br>Enter file in which to save the key (/home/forwhat.cn/.ssh/id_rsa):<br>在这里就是设置存储地址了.反正我是直接按的回车<br>然后还会返回<br>Enter passphrase (empty for no passphrase):<br>再次直接回车。<br>Enter same passphrase again:<br>再次回车。<br>Your identification has been saved in /home/forwhat.cn/.ssh/id_rsa.<br>Your public key has been saved in /home/forwhat.cn/.ssh/id_rsa.pub.<br>The key fingerprint is:<br>这里有一串数。我把他屏蔽了。<br>The key’s randomart image is:<br>+–[ RSA 2048]—-+<br>|                 |<br>|                 |<br>|                 |<br>|    o            |<br>|   + .  S        |<br>|  . = .  o       |<br>|   o + +o.o      |<br>|E o . o.=+.      |<br>|.+   ==+ooo.     |<br>+—————–+<br>这样SSH key就生成了。<br>记事本打开：C:\Users\Administrator.ssh\id_rsa.pub复制所有内容，<br>进入github官网，将此Key追加到项目中，勾选允许写入。<p></p>
-<p></p><h2 id="usingssh">使SSH Key生效</h2><br>打开Git Bush，执行一次下载即可在：C:\Users\Administrator.ssh\<br>目录下自动生成known_hosts文件（不执行此步骤KEY将无法生效），<br>执行：<code>git clone git@github.com:knna/knna.git</code><p></p>
-<p></p><h2 id="upload">上传</h2><br>所有工作做完以后,cmd执行<code>hexo generate</code>生成上送数据，继续执行 <code>hexo deploy</code>，开始上送。<p></p>
-<p></p><h2 id="error">可能出现的错误</h2><br>如果使用git远程推送（hexo deploy）时出现如下问题：<p></p>
-<p>[fulinux@ubuntu learngit]$ git push -u origin master<br>ssh: connect to host github.com port 22: Connection refused<br>fatal: Could not read from remote repository.</p>
-<p>Please make sure you have the correct access rights<br>and the repository exists.</p>
-<p>可能是端口错误，可以采用如下方法：<br>打开Git Bush，执行<br><code>vim .ssh/config</code></p>
-<p>Host github.com<br>User fulinux@sina.com<br>Hostname ssh.github.com<br>PreferredAuthentications publickey<br>IdentityFile ~/.ssh/id_rsa<br>Port 443</p>
-<p>测试连接是否成功,打开Git Bush，执行:<br><code>ssh -T git@github.com</code><br>Hi fulinux! You’ve successfully authenticated, but GitHub does not provide shell access.</p>
-<p></p><h2 id="hexocommand">hexo常用命令</h2><br>完整命令：hexo clean<br>结果：清理生成的数据<br>简写：无<p></p>
-<p>完整命令：hexo server<br>结果：开启本地服务器<br>简写：hexo s</p>
-<p>完整命令：hexo generate<br>结果：生成数据<br>简写：hexo g</p>
-<p>完整命令：hexo deploy<br>结果：清理生成的数据<br>简写：hexo d</p>
-<p>完整命令：hexo new 文章标题<br>结果：创建一个文章<br>简写：无</p>
+    <updated>2015-12-30T06:05:16.000Z</updated>
+    <content type="html"><![CDATA[<h1 id="准备工作">准备工作</h1><h2 id="下载工具并安装">下载工具并安装</h2><blockquote>
+<ul>
+<li><a href="http://git-scm.com/download/win" target="_blank" rel="external">下载Git</a></li>
+<li><a href="https://nodejs.org/dist/latest/node-v4.0.0-x64.msi" target="_blank" rel="external">下载Node</a></li>
+</ul>
+</blockquote>
+<h2 id="部署NodeJS和Git">部署NodeJS和Git</h2><blockquote>
+<ul>
+<li>CMD执行：npm install -g hexo</li>
+<li>追加Git程序路径到环境变量的PATH：C:\Program Files\Git\cmd;</li>
+<li>在磁盘中创建hexo工作目录，打开CMD，进入此文件夹下，执行后续操作</li>
+<li>CMD执行：git init</li>
+<li>CMD执行：hexo init</li>
+<li>CMD执行：git config –global user.email “你的github登陆账号”</li>
+<li>CMD执行：git config –global user.name “你的github用户名”</li>
+<li>CMD执行：npm install</li>
+</ul>
+</blockquote>
+<p>打开Git Bush 进入hexo目录执行这些代码：</p>
+<blockquote>
+<ul>
+<li>npm install hexo –save</li>
+<li>npm install hexo-server –save</li>
+<li>npm install hexo-deployer-git –save</li>
+</ul>
+</blockquote>
+<p>若需要RSS生成和sitemap生成则需要装两个插件，继续执行以下代码即可安装插件：</p>
+<blockquote>
+<ul>
+<li>npm install hexo-generator-feed –save</li>
+<li>npm install hexo-generator-sitemap –save</li>
+</ul>
+</blockquote>
+<p>如果使用了RSS和sitemap则需要在hexo目录的_config.yml文件中增加以下内容：</p>
+<blockquote>
+<ul>
+<li>rss: /atom.xml</li>
+<li>sitemap: /sitemap.xml</li>
+</ul>
+</blockquote>
+<p>配置GitHub</p>
+<blockquote>
+<ul>
+<li>申请账号Github，<a href="https://github.com/" target="_blank" rel="external">点击这里</a></li>
+<li>创建存储仓库</li>
+</ul>
+</blockquote>
+<p>如图所示点击创建仓库：<br><img src="/images/public/6.jpg" alt="images"><br>输入一个Repository name并点击绿色按钮创建成功。<br><img src="/images/public/7.jpg" alt="images"><br>在项目仓库中点击settings进入设置页面<br><img src="/images/public/15.jpg" alt="images"><br>在设置页面中点击如下按钮，开始创建一个展示页<br><img src="/images/public/16.jpg" alt="images"><br>在主页创建界面下，直接点击如下按钮继续<br><img src="/images/public/17.jpg" alt="images"><br>继续点击完成展示页的创建<br><img src="/images/public/18.jpg" alt="images"><br>回到如图的项目仓库主页中，复制此页面上的Git路径<br><img src="/images/public/19.jpg" alt="images"><br>打开hexo的安装目录，然后打开_config.yml配置文件，在最后一个节点deploy中配置如下：<br><img src="/images/public/12.jpg" alt="images"></p>
+<p>到此准备工作已完成，可以在cmd执行:hexo server打开本地服务器，进入<br><a href="http://localhost:4000/" target="_blank" rel="external">http://localhost:4000/</a><br>查看网站是否可用，CTRL + C 关闭服务器。</p>
+<h2 id="创建SSH_Key">创建SSH Key</h2><p>若是现在直接上传会提示错误，需要先创建SHH Key。<br>在Git Bush终端输入：ssh-keygen -t rsa -C “your_email@example.com”<br>如果执行成功。返回<br>Generating public/private rsa key pair.<br>Enter file in which to save the key (/home/forwhat.cn/.ssh/id_rsa):<br>在这里就是设置存储地址了.反正我是直接按的回车<br>然后还会返回<br>Enter passphrase (empty for no passphrase):<br>再次直接回车。<br>Enter same passphrase again:<br>再次回车。<br>Your identification has been saved in /home/forwhat.cn/.ssh/id_rsa.<br>Your public key has been saved in /home/forwhat.cn/.ssh/id_rsa.pub.<br>The key fingerprint is:<br>这里有一串数。我把他屏蔽了。<br>The key’s randomart image is:<br>+–[ RSA 2048]—-+<br>| |<br>| |<br>| |<br>| o |<br>| + . S |<br>| . = . o |<br>| o + +o.o |<br>|E o . o.=+. |<br>|.+ ==+ooo. |<br>+—————–+<br>这样SSH key就生成了。<br>记事本打开：C:\Users\Administrator.ssh\id_rsa.pub复制所有内容，<br>进入github官网，将此Key追加到项目中，勾选允许写入。</p>
+<h2 id="使SSH_Key生效">使SSH Key生效</h2><p>打开Git Bush，执行一次下载即可在：C:\Users\Administrator.ssh\<br>目录下自动生成known_hosts文件（不执行此步骤KEY将无法生效），<br>执行：git clone git@github.com:knna/test.git</p>
+<h1 id="上传博客">上传博客</h1><p>所有工作做完以后,cmd执行：hexo generate，开始博客网站数据，继续执行：hexo deploy，开始上送。</p>
+<h1 id="可能出现的错误">可能出现的错误</h1><p>如果使用git远程推送（hexo deploy）时出现如下问题：<br>[fulinux@ubuntu learngit]$ git push -u origin master<br>ssh: connect to host github.com port 22: Connection refused<br>fatal: Could not read from remote repository.<br>Please make sure you have the correct access rights<br>and the repository exists.<br>可能是端口错误，可以采用如下方法：<br>打开Git Bush，执行<br>vim .ssh/config<br>Host github.com<br>User fulinux@sina.com<br>Hostname ssh.github.com<br>PreferredAuthentications publickey<br>IdentityFile ~/.ssh/id_rsa<br>Port 443<br>测试连接是否成功,打开Git Bush，执行:<br>ssh -T git@github.com<br>Hi fulinux! You’ve successfully authenticated, but GitHub does not provide shell access.</p>
+<h1 id="其他错误">其他错误</h1><p>可以检查hexo主目录的隐藏文件夹.git中的config文件里面的user节点是否正确；description文件里面的github仓库名称是否正确。</p>
+<h1 id="hexo常用命令">hexo常用命令</h1><p>完整命令：hexo clean<br>结果：清理生成的数据<br>简写：无<br>完整命令：hexo server<br>结果：开启本地服务器<br>简写：hexo s<br>完整命令：hexo generate<br>结果：生成数据<br>简写：hexo g<br>完整命令：hexo deploy<br>结果：清理生成的数据<br>简写：hexo d<br>完整命令：hexo new 文章标题<br>结果：创建一个文章<br>简写：无</p>
 ]]></content>
     <summary type="html">
-    <![CDATA[<p></p><h1 id="ready">准备工作</h1><p></p>
-<p></p><h2 id="account">申请账号Github</h2><br><a href="https://github.com/" target="_blank" rel="externa]]>
+    <![CDATA[<h1 id="准备工作">准备工作</h1><h2 id="下载工具并安装">下载工具并安装</h2><blockquote>
+<ul>
+<li><a href="http://git-scm.com/download/win" target="_blank" rel="ext]]>
     </summary>
     
-      <category term="GitHub" scheme="http://www.knna.me/tags/GitHub/"/>
-    
-      <category term="Hexo" scheme="http://www.knna.me/tags/Hexo/"/>
-    
-      <category term="博客搭建" scheme="http://www.knna.me/categories/%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA/"/>
+      <category term="Hexo博客搭建" scheme="http://www.knna.me/tags/Hexo%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA/"/>
     
   </entry>
   
