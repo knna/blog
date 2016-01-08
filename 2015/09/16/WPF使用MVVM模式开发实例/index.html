@@ -26,7 +26,7 @@ WPF提供非常漂亮的UI交互，基于WPF提供的模板还可以方便的进
 WPF提供非常漂亮的UI交互，基于WPF提供的模板还可以方便的进行自定义控件的开发，比winform实在方便很多。
 界面使用XAML标记语言进行布局，可让界面、逻辑分离，让专业的人做专业的事。实际上一般情况下都是一个人完成前端和后端的。。。  并且XAM">
 <meta property="og:image" content="http://www.knna.me/images/wpf/1.gif">
-<meta property="og:updated_time" content="2015-11-25T02:16:06.000Z">
+<meta property="og:updated_time" content="2016-01-06T01:08:26.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="WPF使用MVVM模式开发实例">
 <meta name="twitter:description" content="WPF在客户对UI体验要求越来越高的今天，很多的公司和开发人员开始使用WPF进行开发，WPF的优势在哪里呢。列出我使用中体会比较深的一些点：
@@ -130,7 +130,7 @@ WPF提供非常漂亮的UI交互，基于WPF提供的模板还可以方便的进
 <h2 id="数据绑定">数据绑定</h2><p>为了将前端与后端代码解耦，我们新建一个类文件用于窗体的业务逻辑编写。首先新建一个用于MVVM模式开发的窗体，再新建一个类。<br>类文件代码，第一个是模型类的基类，封装了属性通知方法，第二个是模型类。<br><figure class="highlight cs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">ModelBase</span>:<span class="title">ViewModelBase</span></span><br><span class="line">   &#123;</span><br><span class="line">       <span class="keyword">public</span> <span class="keyword">void</span> UpdateProperty&lt;T&gt;(<span class="keyword">ref</span> T properValue, T newValue, <span class="keyword">string</span> properName)</span><br><span class="line">       &#123;</span><br><span class="line">           <span class="keyword">if</span> (<span class="keyword">object</span>.Equals(properValue, newValue))</span><br><span class="line">               <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">           properValue = newValue;</span><br><span class="line">           RaisePropertyChanged(properName);</span><br><span class="line">       &#125;</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">WindDataBindingModel</span> : <span class="title">ModelBase</span></span><br><span class="line">   &#123;</span><br><span class="line">       <span class="preprocessor">#<span class="keyword">region</span> 构造</span></span><br><span class="line">       <span class="function"><span class="keyword">public</span> <span class="title">WindDataBindingModel</span>(<span class="params"></span>)</span><br><span class="line">       </span>&#123;</span><br><span class="line">           Refresh = <span class="keyword">new</span> RelayCommand(ExeRefresh);</span><br><span class="line">           InitData();</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">       <span class="function"><span class="keyword">void</span> <span class="title">InitData</span>(<span class="params"></span>)</span><br><span class="line">       </span>&#123;</span><br><span class="line">           ListItems = <span class="keyword">new</span> ObservableCollection&lt;Student&gt;() &#123; <span class="keyword">new</span> Student() &#123; Name = <span class="string">"张三"</span>, Age = <span class="number">15</span> &#125;, <span class="keyword">new</span> Student() &#123; Name = <span class="string">"李四"</span>, Age = <span class="number">16</span> &#125;, <span class="keyword">new</span> Student() &#123; Name = <span class="string">"王五"</span>, Age = <span class="number">19</span> &#125; &#125;;</span><br><span class="line">       &#125;</span><br><span class="line">       <span class="preprocessor">#<span class="keyword">endregion</span></span></span><br><span class="line"></span><br><span class="line">       <span class="preprocessor">#<span class="keyword">region</span> 属性</span></span><br><span class="line">       <span class="keyword">private</span> ObservableCollection&lt;Student&gt; _listItems;</span><br><span class="line">       <span class="keyword">public</span> ObservableCollection&lt;Student&gt; ListItems</span><br><span class="line">       &#123;</span><br><span class="line">           <span class="keyword">get</span> &#123; <span class="keyword">return</span> _listItems; &#125;</span><br><span class="line">           <span class="keyword">set</span> &#123; UpdateProperty(<span class="keyword">ref</span> _listItems, <span class="keyword">value</span>, <span class="string">"ListItems"</span>); &#125;</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">       <span class="keyword">private</span> Student _selectedItem;</span><br><span class="line">       <span class="keyword">public</span> Student SelectedItem</span><br><span class="line">       &#123;</span><br><span class="line">           <span class="keyword">get</span> &#123; <span class="keyword">return</span> _selectedItem; &#125;</span><br><span class="line">           <span class="keyword">set</span> &#123; UpdateProperty(<span class="keyword">ref</span> _selectedItem, <span class="keyword">value</span>, <span class="string">"SelectedItem"</span>); &#125;</span><br><span class="line">       &#125;</span><br><span class="line">       <span class="preprocessor">#<span class="keyword">endregion</span></span></span><br><span class="line"></span><br><span class="line">       <span class="preprocessor">#<span class="keyword">region</span> 命令</span></span><br><span class="line">       <span class="keyword">public</span> RelayCommand Refresh &#123; <span class="keyword">get</span>; <span class="keyword">private</span> <span class="keyword">set</span>; &#125;</span><br><span class="line">       <span class="function"><span class="keyword">void</span> <span class="title">ExeRefresh</span>(<span class="params"></span>)</span><br><span class="line">       </span>&#123;</span><br><span class="line">           ListItems.Add(<span class="keyword">new</span> Student() &#123; Name = <span class="string">"新增数据"</span>, Age = <span class="number">100</span> &#125;);</span><br><span class="line">       &#125;</span><br><span class="line">       <span class="preprocessor">#<span class="keyword">endregion</span></span></span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="keyword">public</span> <span class="keyword">class</span> <span class="title">Student</span></span><br><span class="line">   &#123;</span><br><span class="line">       <span class="keyword">public</span> <span class="keyword">string</span> Name &#123; <span class="keyword">get</span>; <span class="keyword">set</span>; &#125;</span><br><span class="line">       <span class="keyword">public</span> <span class="keyword">int</span> Age &#123; <span class="keyword">get</span>; <span class="keyword">set</span>; &#125;</span><br><span class="line"></span><br><span class="line">       <span class="function"><span class="keyword">public</span> <span class="keyword">override</span> <span class="keyword">string</span> <span class="title">ToString</span>(<span class="params"></span>)</span><br><span class="line">       </span>&#123;</span><br><span class="line">           <span class="keyword">return</span> <span class="string">"姓名："</span> + Name + <span class="string">"，年龄："</span> + Age;</span><br><span class="line">       &#125;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure></p>
 <p>窗体XAML代码，在控件上直接bingding绑定数据源<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="title">Grid</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="title">Grid.RowDefinitions</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="title">RowDefinition</span> <span class="attribute">Height</span>=<span class="value">"auto"</span>/&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="title">RowDefinition</span> <span class="attribute">Height</span>=<span class="value">"*"</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="title">Grid.RowDefinitions</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="title">StackPanel</span> <span class="attribute">Orientation</span>=<span class="value">"Horizontal"</span> <span class="attribute">Margin</span>=<span class="value">"5"</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="title">TextBlock</span> <span class="attribute">Text</span>=<span class="value">"当前选中项"</span> <span class="attribute">Margin</span>=<span class="value">"5"</span>/&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="title">TextBlock</span> <span class="attribute">Text</span>=<span class="value">"&#123;Binding SelectedItem&#125;"</span> <span class="attribute">Width</span>=<span class="value">"200"</span> <span class="attribute">Margin</span>=<span class="value">"5"</span> <span class="attribute">Foreground</span>=<span class="value">"Gray"</span>/&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="title">Button</span> <span class="attribute">Content</span>=<span class="value">"刷新数据"</span> <span class="attribute">Command</span>=<span class="value">"&#123;Binding Refresh&#125;"</span> <span class="attribute">Width</span>=<span class="value">"90"</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="title">StackPanel</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="title">DataGrid</span> <span class="attribute">Grid.Row</span>=<span class="value">"1"</span> <span class="attribute">AutoGenerateColumns</span>=<span class="value">"False"</span> <span class="attribute">IsReadOnly</span>=<span class="value">"True"</span> <span class="attribute">ItemsSource</span>=<span class="value">"&#123;Binding ListItems&#125;"</span> <span class="attribute">SelectedItem</span>=<span class="value">"&#123;Binding SelectedItem&#125;"</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="title">DataGrid.Columns</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="title">DataGridTextColumn</span> <span class="attribute">Header</span>=<span class="value">"名字"</span> <span class="attribute">Binding</span>=<span class="value">"&#123;Binding Name&#125;"</span> <span class="attribute">Width</span>=<span class="value">"100"</span>/&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="title">DataGridTextColumn</span> <span class="attribute">Header</span>=<span class="value">"年龄"</span> <span class="attribute">Binding</span>=<span class="value">"&#123;Binding Age&#125;"</span> <span class="attribute">Width</span>=<span class="value">"100"</span>/&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="title">DataGrid.Columns</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="title">DataGrid</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="title">Grid</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
 <p>窗体后台代码，将数据模型与窗体绑定<br><figure class="highlight cs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">WindDataBinding</span>(<span class="params"></span>)</span><br><span class="line">        </span>&#123;</span><br><span class="line">            InitializeComponent();</span><br><span class="line">            <span class="keyword">this</span>.DataContext = <span class="keyword">new</span> WindDataBindingModel();</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure></p>
-<p>实现效果：<br><img src="/images/wpf/1.gif" alt="image"><br>一个简单功能的MVVM模式开发例子就完成了，这里的属性通知和命令使用了Mvvm Light组件封装，使用起来很方便。<br>源码点击<a href="http://www.knna.me/files/mvvmdemo.rar">这里下载</a>。</p>
+<p>实现效果：<br><img src="/images/wpf/1.gif" alt="image"><br>一个简单功能的MVVM模式开发例子就完成了，这里的属性通知和命令使用了Mvvm Light组件封装，使用起来很方便。<br>源码点击 [这里下载] (<a href="http://pan.baidu.com/s/1kTVoE83)。" target="_blank" rel="external">http://pan.baidu.com/s/1kTVoE83)。</a></p>
   
 	</div>
 		<footer class="article-footer clearfix">
@@ -282,7 +282,11 @@ WPF提供非常漂亮的UI交互，基于WPF提供的模板还可以方便的进
 			
 		
 			
-				<li><a href="/tags/模板/" title="模板">模板<sup>1</sup></a></li>
+				<li><a href="/tags/自定义控件/" title="自定义控件">自定义控件<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/反射/" title="反射">反射<sup>1</sup></a></li>
 			
 		
 			
@@ -290,11 +294,11 @@ WPF提供非常漂亮的UI交互，基于WPF提供的模板还可以方便的进
 			
 		
 			
-				<li><a href="/tags/自定义控件/" title="自定义控件">自定义控件<sup>1</sup></a></li>
+				<li><a href="/tags/Socket/" title="Socket">Socket<sup>1</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/Socket/" title="Socket">Socket<sup>1</sup></a></li>
+				<li><a href="/tags/模板/" title="模板">模板<sup>1</sup></a></li>
 			
 		
 			
@@ -310,11 +314,11 @@ WPF提供非常漂亮的UI交互，基于WPF提供的模板还可以方便的进
 			
 		
 			
-				<li><a href="/tags/Hexo博客搭建/" title="Hexo博客搭建">Hexo博客搭建<sup>1</sup></a></li>
+				<li><a href="/tags/PHP/" title="PHP">PHP<sup>1</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/人生就是一场突如其来的旅行/" title="人生就是一场突如其来的旅行">人生就是一场突如其来的旅行<sup>1</sup></a></li>
+				<li><a href="/tags/Hexo博客搭建/" title="Hexo博客搭建">Hexo博客搭建<sup>1</sup></a></li>
 			
 		
 			
@@ -322,15 +326,11 @@ WPF提供非常漂亮的UI交互，基于WPF提供的模板还可以方便的进
 			
 		
 			
+				<li><a href="/tags/人生就是一场突如其来的旅行/" title="人生就是一场突如其来的旅行">人生就是一场突如其来的旅行<sup>1</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/反射/" title="反射">反射<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Log4net/" title="Log4net">Log4net<sup>1</sup></a></li>
 			
 		
 		</ul>
@@ -407,7 +407,7 @@ WPF提供非常漂亮的UI交互，基于WPF提供的模板还可以方便的进
 		
 
 		<p class="copyright">
-		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2015 
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2016 
 		
 		<a href="/about" target="_blank" title="KNNA">KNNA</a>
 		

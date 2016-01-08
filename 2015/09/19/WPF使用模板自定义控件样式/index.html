@@ -28,7 +28,7 @@
 下载并配置好Mahapps.Metro的UI库，毕竟是免费的嘛，所以我习惯了随时都用它！
 下载Light MVVM组件，在演示调用自定义控件绑定数据时">
 <meta property="og:image" content="http://www.knna.me/images/wpf/2.gif">
-<meta property="og:updated_time" content="2015-11-25T02:16:04.000Z">
+<meta property="og:updated_time" content="2016-01-06T01:06:32.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="WPF使用模板自定义控件样式">
 <meta name="twitter:description" content="WPF模板在刚刚接触WPF的时候，第一个印象就是非常灵活方便的模板，可以随时重写模板，实现自己想要的效果。winform中要做个复杂点的UI效果相对是比较麻烦的。今天我们自定义树控件，使其支持选中、节点图像等功能。
@@ -133,7 +133,7 @@
 <p>创建了一个模型类，并且在窗体后台代码中将模型类的实例作为窗体数据源<br><figure class="highlight cs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">MainWindowModel</span> : <span class="title">ModelBase</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">MainWindowModel</span>(<span class="params"></span>)</span><br><span class="line">    </span>&#123;</span><br><span class="line">        BitmapImage parentImg = GetImage(<span class="string">"foodmarket.png"</span>);</span><br><span class="line">        BitmapImage childImg = GetImage(<span class="string">"booth.jpg"</span>);</span><br><span class="line">        ListItems = <span class="keyword">new</span> ObservableCollection&lt;TreeItem&gt;() &#123; <span class="keyword">new</span> TreeItem() &#123; Content = <span class="string">"父节点1"</span> ,NodeImage=parentImg</span><br><span class="line">            ,Children=<span class="keyword">new</span> ObservableCollection&lt;TreeItem&gt;()&#123;<span class="keyword">new</span> TreeItem()&#123;Content=<span class="string">"子节点"</span>,NodeImage=childImg&#125;&#125;&#125;, </span><br><span class="line">            <span class="keyword">new</span> TreeItem() &#123; Content = <span class="string">"父节点2"</span> ,NodeImage=parentImg&#125; &#125;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> ObservableCollection&lt;TreeItem&gt; _listItems;</span><br><span class="line">    <span class="keyword">public</span> ObservableCollection&lt;TreeItem&gt; ListItems</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">get</span> &#123; <span class="keyword">return</span> _listItems; &#125;</span><br><span class="line">        <span class="keyword">set</span> &#123; UpdateProperty(<span class="keyword">ref</span> _listItems, <span class="keyword">value</span>, <span class="string">"ListItems"</span>); &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> TreeItem _selectedItem;</span><br><span class="line">    <span class="keyword">public</span> TreeItem SelectedItem</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">get</span> &#123; <span class="keyword">return</span> _selectedItem; &#125;</span><br><span class="line">        <span class="keyword">set</span> &#123; UpdateProperty(<span class="keyword">ref</span> _selectedItem, <span class="keyword">value</span>, <span class="string">"SelectedItem"</span>); &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function">BitmapImage <span class="title">GetImage</span>(<span class="params"><span class="keyword">string</span> imgName</span>)</span><br><span class="line">    </span>&#123;</span><br><span class="line">        <span class="keyword">string</span> path = AppDomain.CurrentDomain.BaseDirectory + <span class="string">"Images/"</span> + imgName;</span><br><span class="line">        <span class="keyword">if</span> (!File.Exists(path))</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        MemoryStream ms = <span class="keyword">new</span> MemoryStream(File.ReadAllBytes(path));</span><br><span class="line">        BitmapImage image = <span class="keyword">new</span> BitmapImage();</span><br><span class="line">        image.BeginInit();</span><br><span class="line">        image.StreamSource = ms;</span><br><span class="line">        image.EndInit();</span><br><span class="line">        <span class="keyword">return</span> image;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
 <p>完成后的效果图：<br><img src="/images/wpf/2.gif" alt="image"></p>
 <p>在此控件上还可以拓展更多的功能，比如多字段显示功能，增加几个列，调用反射来获取所有字段的值，并一一展示，在DEV（一个收费的第三方UI库）控件库中，有个树控件就实现了类似的功能。</p>
-<p>示例源码点击<a href="http://www.knna.me/files/wpftemplatedemo.rar">这里下载</a>。</p>
+<p>示例源码点击 <a href="http://pan.baidu.com/s/1dDOFsBJ" target="_blank" rel="external">这里下载</a>。</p>
   
 	</div>
 		<footer class="article-footer clearfix">
@@ -285,7 +285,11 @@
 			
 		
 			
-				<li><a href="/tags/模板/" title="模板">模板<sup>1</sup></a></li>
+				<li><a href="/tags/自定义控件/" title="自定义控件">自定义控件<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/反射/" title="反射">反射<sup>1</sup></a></li>
 			
 		
 			
@@ -293,11 +297,11 @@
 			
 		
 			
-				<li><a href="/tags/自定义控件/" title="自定义控件">自定义控件<sup>1</sup></a></li>
+				<li><a href="/tags/Socket/" title="Socket">Socket<sup>1</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/Socket/" title="Socket">Socket<sup>1</sup></a></li>
+				<li><a href="/tags/模板/" title="模板">模板<sup>1</sup></a></li>
 			
 		
 			
@@ -313,11 +317,11 @@
 			
 		
 			
-				<li><a href="/tags/Hexo博客搭建/" title="Hexo博客搭建">Hexo博客搭建<sup>1</sup></a></li>
+				<li><a href="/tags/PHP/" title="PHP">PHP<sup>1</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/人生就是一场突如其来的旅行/" title="人生就是一场突如其来的旅行">人生就是一场突如其来的旅行<sup>1</sup></a></li>
+				<li><a href="/tags/Hexo博客搭建/" title="Hexo博客搭建">Hexo博客搭建<sup>1</sup></a></li>
 			
 		
 			
@@ -325,15 +329,11 @@
 			
 		
 			
+				<li><a href="/tags/人生就是一场突如其来的旅行/" title="人生就是一场突如其来的旅行">人生就是一场突如其来的旅行<sup>1</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/反射/" title="反射">反射<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Log4net/" title="Log4net">Log4net<sup>1</sup></a></li>
 			
 		
 		</ul>
@@ -410,7 +410,7 @@
 		
 
 		<p class="copyright">
-		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2015 
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2016 
 		
 		<a href="/about" target="_blank" title="KNNA">KNNA</a>
 		

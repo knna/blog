@@ -78,6 +78,27 @@
   
 <section class="post" itemscope itemprop="blogitem">
   
+    <a href="/2015/05/12/Oracle 操作错误提示 table or view does not exist/" title="Oracle 操作错误提示 table or view does not exist" itemprop="url">
+  
+    <h1 itemprop="name">Oracle 操作错误提示 table or view does not exist</h1>
+    
+     
+           <p itemprop="description" >一般情况下由于没有为当前用户赋予查询的表、视图、字典的权限，会出现这个问题。
+解决进入服务器，打开CMD，输入 sqlplus / as sysdba，接着执行 GRANT SELECT ANY DICTIONARY TO current_user;  这里的current_us</p>
+        
+    
+    <time datetime="2015-05-12T07:17:11.000Z" itemprop="datePublished">2015-05-12</time>
+  </a>
+</section>
+
+
+
+
+
+
+  
+<section class="post" itemscope itemprop="blogitem">
+  
     <a href="/2015/05/09/Oracle 表空间数据文件相关操作/" title="Oracle 表空间数据文件相关操作" itemprop="url">
   
     <h1 itemprop="name">Oracle 表空间数据文件相关操作</h1>
@@ -120,13 +141,13 @@
   
 <section class="post" itemscope itemprop="blogitem">
   
-    <a href="/2015/04/20/ORA 28000 the account is locked的解决办法/" title="ORA 28000 the account is locked的解决办法" itemprop="url">
+    <a href="/2015/04/20/Oracle创建存储过程报错 Error PLS-00103  Encountered the symbol  ALTER/" title="Oracle创建存储过程报错 Error PLS-00103  Encountered the symbol  ALTER" itemprop="url">
   
-    <h1 itemprop="name">ORA 28000 the account is locked的解决办法</h1>
+    <h1 itemprop="name">Oracle创建存储过程报错 Error PLS-00103  Encountered the symbol  ALTER</h1>
     
      
-           <p itemprop="description" >错误提示在使用PL/Sql登陆oracle时，提示：ORA-28000: the account is locked
-解决方案方法一1：使用PL/SQL，登录名为system,数据库名称不变，选择类型的时候把Normal修改为Sysdba;2：选择myjob,查看users;3：</p>
+           <p itemprop="description" >操作过程在数据库创建一个存储过程，存储过程执行了创建一个表分区的操作。
+错误提示Error: PLS-00103: Encountered the symbol “ALTER” when expecting one of the following:begin case decl</p>
         
     
     <time datetime="2015-04-20T04:07:52.000Z" itemprop="datePublished">2015-04-20</time>
@@ -141,13 +162,13 @@
   
 <section class="post" itemscope itemprop="blogitem">
   
-    <a href="/2015/04/20/Oracle创建存储过程报错 Error PLS-00103  Encountered the symbol  ALTER/" title="Oracle创建存储过程报错 Error PLS-00103  Encountered the symbol  ALTER" itemprop="url">
+    <a href="/2015/04/20/ORA 28000 the account is locked的解决办法/" title="ORA 28000 the account is locked的解决办法" itemprop="url">
   
-    <h1 itemprop="name">Oracle创建存储过程报错 Error PLS-00103  Encountered the symbol  ALTER</h1>
+    <h1 itemprop="name">ORA 28000 the account is locked的解决办法</h1>
     
      
-           <p itemprop="description" >操作过程在数据库创建一个存储过程，存储过程执行了创建一个表分区的操作。
-错误提示Error: PLS-00103: Encountered the symbol “ALTER” when expecting one of the following:begin case decl</p>
+           <p itemprop="description" >错误提示在使用PL/Sql登陆oracle时，提示：ORA-28000: the account is locked
+解决方案方法一1：使用PL/SQL，登录名为system,数据库名称不变，选择类型的时候把Normal修改为Sysdba;2：选择myjob,查看users;3：</p>
         
     
     <time datetime="2015-04-20T04:07:52.000Z" itemprop="datePublished">2015-04-20</time>
@@ -265,26 +286,6 @@
 
 
 
-  
-<section class="post" itemscope itemprop="blogitem">
-  
-    <a href="/2015/04/12/PL-SQL远程连接Oracle服务的配置方法/" title="PL/SQL远程连接Oracle服务的配置方法" itemprop="url">
-  
-    <h1 itemprop="name">PL/SQL远程连接Oracle服务的配置方法</h1>
-    
-     
-           <p itemprop="description" >准备 下载PL/Sql安装包，下载地址：http://pan.baidu.com/s/1i3L5pzf（百度网盘下载） 下载instantclient客户端，官方下载地址：http://www.oracle.com/technetwork/database/features/in</p>
-        
-    
-    <time datetime="2015-04-12T04:45:49.000Z" itemprop="datePublished">2015-04-12</time>
-  </a>
-</section>
-
-
-
-
-
-
 
   <nav id="page-nav" class="clearfix unexpand">
     <a class="extend prev" rel="prev" href="/page/2/"><span></span>Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/4/">Next<span></span></a>
@@ -374,7 +375,11 @@
 			
 		
 			
-				<li><a href="/tags/模板/" title="模板">模板<sup>1</sup></a></li>
+				<li><a href="/tags/自定义控件/" title="自定义控件">自定义控件<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/反射/" title="反射">反射<sup>1</sup></a></li>
 			
 		
 			
@@ -382,11 +387,11 @@
 			
 		
 			
-				<li><a href="/tags/自定义控件/" title="自定义控件">自定义控件<sup>1</sup></a></li>
+				<li><a href="/tags/Socket/" title="Socket">Socket<sup>1</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/Socket/" title="Socket">Socket<sup>1</sup></a></li>
+				<li><a href="/tags/模板/" title="模板">模板<sup>1</sup></a></li>
 			
 		
 			
@@ -402,11 +407,11 @@
 			
 		
 			
-				<li><a href="/tags/Hexo博客搭建/" title="Hexo博客搭建">Hexo博客搭建<sup>1</sup></a></li>
+				<li><a href="/tags/PHP/" title="PHP">PHP<sup>1</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/人生就是一场突如其来的旅行/" title="人生就是一场突如其来的旅行">人生就是一场突如其来的旅行<sup>1</sup></a></li>
+				<li><a href="/tags/Hexo博客搭建/" title="Hexo博客搭建">Hexo博客搭建<sup>1</sup></a></li>
 			
 		
 			
@@ -414,15 +419,11 @@
 			
 		
 			
+				<li><a href="/tags/人生就是一场突如其来的旅行/" title="人生就是一场突如其来的旅行">人生就是一场突如其来的旅行<sup>1</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/反射/" title="反射">反射<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/Log4net/" title="Log4net">Log4net<sup>1</sup></a></li>
 			
 		
 		</ul>
@@ -499,7 +500,7 @@
 		
 
 		<p class="copyright">
-		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2015 
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2016 
 		
 		<a href="/about" target="_blank" title="KNNA">KNNA</a>
 		
